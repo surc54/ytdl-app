@@ -1,0 +1,23 @@
+.video-card {
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+
+    > div.wrapper {
+        background: rgba(0, 0, 0, 0.79);
+        padding: 10px;
+
+        .actions {
+            display: flex;
+            flex-flow: row nowrap;
+            justify-content: flex-end;
+            align-items: center;
+
+            margin-top: 10px;
+
+            > * {
+                margin-left: 10px;
+            }
+        }
+    }
+}

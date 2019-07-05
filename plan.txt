@@ -1,0 +1,11 @@
+ACTIONS:
+  search
+  addToJobList
+  removeFromJobList
+  retrieveVideoInfo
+  startOneJob
+  startAllJobs
+  setSaveFolder
+  setGenericFormat
+  jobStatusChange // For progress
+

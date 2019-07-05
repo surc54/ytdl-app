@@ -1,0 +1,10 @@
+.search-bar-wrapper.inline {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-items: center;
+
+    .inline-search-button {
+        margin-left: 10px;
+    }
+}

@@ -1,0 +1,10 @@
+.app-content .jobs-top-control {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    align-items: center;
+
+    > * {
+        margin-left: 5px;
+    }
+}
