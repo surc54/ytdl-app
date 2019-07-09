@@ -9,3 +9,12 @@ ACTIONS:
   setGenericFormat
   jobStatusChange // For progress
 
+
+sampleVideos:
+  tV8P6T5tTYs
+  Bkttq3e5DcY
+  JdTBIHX-r0M
+  g1Gvi6q-OPM
+
+job-state:
+  videos;

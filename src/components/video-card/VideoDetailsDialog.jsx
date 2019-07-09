@@ -31,12 +31,15 @@ const VideoDetailsDialog = props => {
         if (onClose && typeof onClose === "function") onClose();
     }
 
+    let panelRenderKeys = 0;
+
     function renderPanels(cat, disableArrayExpand = true) {
         if (typeof cat === "object") {
             if (Array.isArray(cat)) {
                 return _.map(cat, (c, i) => {
                     return (
                         <ExpansionPanel
+                            key={`${i}_${panelRenderKeys++}`}
                             expanded={disableArrayExpand || null}
                             disabled={disableArrayExpand}
                             TransitionProps={{
@@ -73,6 +76,7 @@ const VideoDetailsDialog = props => {
                     const ren = renderPanels(val, _.size(cat[key]) < 3);
                     return (
                         <ExpansionPanel
+                            key={`${panelRenderKeys++}_${key}`}
                             TransitionProps={{
                                 unmountOnExit: true,
                                 timeout: 0,

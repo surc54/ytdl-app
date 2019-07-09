@@ -11,6 +11,7 @@ import { setMaximized } from "../actions";
 import { Router, Route } from "react-router";
 import history from "../history";
 import SelectionPage from "./selection-page/SelectionPage";
+import TotalProgress from "./TotalProgress";
 const { ipcRenderer, remote } = window.require("electron");
 
 const appThemeDark = createMuiTheme({
@@ -87,6 +88,7 @@ class App extends React.Component {
                         <Route path="/select" exact component={SelectionPage} />
                     </Router>
                 </div>
+                <TotalProgress />
             </ThemeProvider>
         );
     }

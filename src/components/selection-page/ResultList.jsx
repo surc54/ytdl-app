@@ -45,7 +45,7 @@ const ResultList = props => {
 
             renderList.push(
                 videos.map(v => {
-                    return <VideoCard video={v} />;
+                    return <VideoCard video={v} key={v.video_id} />;
                 })
             );
         }

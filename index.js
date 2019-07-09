@@ -1,5 +1,5 @@
 // import { app, BrowserWindow } from "electron";
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const ytdl = require("ytdl-core");
 const fs = require("fs");
@@ -74,6 +74,17 @@ ipcMain.on("video:download", async (event, arg) => {
     );
 });
 
+ipcMain.on("ytdl:choose-directory", (event, arg) => {
+    const resp = dialog.showOpenDialog(mainWindow, {
+        title: "Choose save location",
+        buttonLabel: "Choose Directory",
+        properties: ["openDirectory", "promptToCreate"],
+        message: "Choose where to save your downloads",
+    });
+
+    event.sender.send("ytdl:directory", resp);
+});
+
 ipcMain.on("video:info", async (event, arg) => {
     console.log(`Video Info Request: ${arg}`);
     let err = null;
@@ -83,7 +94,12 @@ ipcMain.on("video:info", async (event, arg) => {
     } catch (e) {
         err = e;
     }
-    event.sender.send("video:info-received", {
+    event.sender.send(`video:info-received`, {
+        status: err ? "fail" : "ok",
+        err: err ? err.message : null,
+        result: response,
+    });
+    event.sender.send(`video:info-received:${arg}`, {
         status: err ? "fail" : "ok",
         err: err ? err.message : null,
         result: response,

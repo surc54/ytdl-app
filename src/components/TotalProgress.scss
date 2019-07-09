@@ -1,0 +1,27 @@
+.total-progress {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+
+    z-index: 1100;
+
+    padding-left: 10px;
+    padding-right: 10px;
+
+    .inner-content {
+        height: 64px;
+        border-radius: 10px;
+        margin-bottom: 6px;
+
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .progress-bar {
+        margin-left: -10px;
+        margin-right: -10px;
+    }
+}

@@ -11,9 +11,11 @@ import {
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import React, { useState } from "react";
+import _ from "lodash";
 import { connect } from "react-redux";
-import { resetAllJobsFormat, clearJobs } from "../../actions";
+import { clearJobs, resetAllJobsFormat, setGeneralFormat } from "../../actions";
 import "./JobsTopControl.scss";
+const { ipcRenderer } = window.require("electron");
 
 const useStyles = makeStyles(theme => {
     return {
@@ -28,7 +30,6 @@ const useStyles = makeStyles(theme => {
 });
 
 const JobsTopControl = props => {
-    const [format, setFormat] = useState("");
     const [anchorEl, setAnchorEl] = useState(null);
     const classes = useStyles();
 
@@ -46,10 +47,22 @@ const JobsTopControl = props => {
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
             >
+                <MenuItem
+                    onClick={() =>
+                        handleClose(() => {
+                            ipcRenderer.send("ytdl:choose-directory");
+                        })
+                    }
+                >
+                    Choose save directory
+                </MenuItem>
                 <MenuItem onClick={() => handleClose(props.resetAllJobsFormat)}>
                     Reset all job-specific formats
                 </MenuItem>
-                <MenuItem onClick={() => handleClose(props.clearJobs)}>
+                <MenuItem
+                    onClick={() => handleClose(props.clearJobs)}
+                    disabled={props.jobListLength === 0}
+                >
                     Clear List
                 </MenuItem>
             </Menu>
@@ -71,10 +84,10 @@ const JobsTopControl = props => {
                     Format
                 </InputLabel>
                 <Select
-                    value={format}
+                    value={props.generalFormat}
                     style={{ width: 100, height: 36 }}
                     onChange={e => {
-                        setFormat(e.target.value);
+                        props.setGeneralFormat(e.target.value);
                     }}
                     input={<OutlinedInput labelWidth={54} />}
                     classes={{
@@ -135,6 +148,7 @@ const JobsTopControl = props => {
                     const { ipcRenderer } = window.require("electron");
                     ipcRenderer.send("video:download");
                 }}
+                disabled={!props.generalFormat}
             >
                 Start
             </Button>
@@ -146,7 +160,15 @@ const JobsTopControl = props => {
     );
 };
 
+const mapStateToProps = state => {
+    return {
+        generalFormat: state.jobs.generalFormat,
+        progress: state.progress,
+        jobListLength: _.size(state.jobs.videos),
+    };
+};
+
 export default connect(
-    null,
-    { clearJobs, resetAllJobsFormat }
+    mapStateToProps,
+    { clearJobs, resetAllJobsFormat, setGeneralFormat }
 )(JobsTopControl);

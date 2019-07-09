@@ -1,9 +1,16 @@
 import { Button, Icon, IconButton, Paper, Typography } from "@material-ui/core";
 import _ from "lodash";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { connect } from "react-redux";
+import { removeFromJobList, setJobFormat } from "../../actions";
 import FormatSelect from "./FormatSelect";
 import "./VideoCard.scss";
 import VideoDetailsDialog from "./VideoDetailsDialog";
+import VideoMoreMenu from "./VideoMoreMenu";
+import WaitingButtonGroup from "./button-groups/WaitingButtonGroup";
+import ResultsButtonGroup from "./button-groups/ResultsButtonGroup";
+import InProgressButtonGroup from "./button-groups/InProgressButtonGroup";
+import DoneButtonGroup from "./button-groups/DoneButtonGroup";
 
 /**
  * @param {videoInfo} props.video
@@ -13,8 +20,13 @@ const VideoCard = props => {
     //     printFormatTable(props.video.formats)
     // }, [props.video.formats]);
 
+    const [moreMenuAchorEl, setMoreMenuAchorEl] = useState(null);
     const [videoDetailsOpen, setVideoDetailsOpen] = useState(false);
     const givenStyle = props.style || {};
+
+    function handleCloseMoreMenu() {
+        setMoreMenuAchorEl(null);
+    }
 
     function openVideoDetails() {
         setVideoDetailsOpen(true);
@@ -23,6 +35,10 @@ const VideoCard = props => {
     function handleCloseVideoDetails() {
         setVideoDetailsOpen(false);
     }
+
+    const removeVideo = () => {
+        props.removeFromJobList(props.video.video_id);
+    };
 
     return (
         <Paper
@@ -42,19 +58,58 @@ const VideoCard = props => {
                     variant="button"
                     gutterBottom
                     style={{ color: "#aaa" }}
+                    noWrap
                 >
                     {props.video.author.name}
                 </Typography>
                 <div className="actions">
-                    <FormatSelect
-                        formats={props.video.formats}
-                        onChange={props.onFormatChange}
-                        value={props.format || ""}
-                    />
-                    <Button variant="outlined">Add</Button>
-                    <IconButton size="small" onClick={openVideoDetails}>
+                    {!props.job ? (
+                        <ResultsButtonGroup {...props} />
+                    ) : (
+                        (process => {
+                            switch (process) {
+                                case "waiting":
+                                    return (
+                                        <WaitingButtonGroup
+                                            {...props}
+                                            removeVideo={removeVideo}
+                                        />
+                                    );
+                                case "downloading":
+                                    return <InProgressButtonGroup {...props} />;
+                                case "done":
+                                    return (
+                                        <DoneButtonGroup
+                                            {...props}
+                                            removeVideo={removeVideo}
+                                        />
+                                    );
+                                default:
+                                    return null;
+                            }
+                        })(props.job.process)
+                    )}
+                    <IconButton
+                        size="small"
+                        onClick={e => {
+                            setMoreMenuAchorEl(e.currentTarget);
+                        }}
+                    >
                         <Icon>more_vert</Icon>
                     </IconButton>
+                    <VideoMoreMenu
+                        job={props.job}
+                        anchorEl={moreMenuAchorEl}
+                        onOpenVideoDetails={openVideoDetails}
+                        onClose={handleCloseMoreMenu}
+                        disableStartDownload={
+                            !props.format && !props.generalFormat
+                        }
+                        resetFormat={() =>
+                            props.setJobFormat(props.video.video_id, "")
+                        }
+                        removeVideo={removeVideo}
+                    />
                     <VideoDetailsDialog
                         open={videoDetailsOpen}
                         onClose={handleCloseVideoDetails}
@@ -66,7 +121,9 @@ const VideoCard = props => {
     );
 };
 
-function printFormatTable(formats) {
+// probably dont need to export but the unused error
+// was annoying
+export function printFormatTable(formats) {
     console.table(
         formats.map(v =>
             _.omit(
@@ -92,4 +149,13 @@ function printFormatTable(formats) {
     );
 }
 
-export default VideoCard;
+const mapStateToProps = (state, ownProps) => {
+    return {
+        generalFormat: state.jobs.generalFormat,
+    };
+};
+
+export default connect(
+    mapStateToProps,
+    { removeFromJobList, setJobFormat }
+)(VideoCard);

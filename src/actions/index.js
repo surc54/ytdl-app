@@ -1,6 +1,7 @@
 import * as types from "./types";
 export * from "./resultsActions";
 export * from "./jobsActions";
+export * from "./progressActions";
 const { ipcRenderer } = window.require("electron");
 
 /**

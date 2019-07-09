@@ -1,6 +1,6 @@
 import * as types from "./types";
 import history from "../history";
-const { ipcRenderer } = window.require("electron");
+import lookup from "../apis/VideoLookup";
 
 export const search = query => {
     query = query.trim();
@@ -35,25 +35,25 @@ export const search = query => {
     }
 
     return async dispatch => {
-        console.log("Sending video id...");
-        ipcRenderer.send("video:info", videoId);
+        console.log(`Looking up video id: ${videoId}`);
+
         dispatch({
             type: types.SET_RESULTS_LOADING,
         });
 
-        ipcRenderer.on("video:info-received", (event, data) => {
-            if (data.status !== "ok") {
-                dispatch({
-                    type: types.GET_SINGLE_VIDEO_INFO_ERR,
-                    payload: data.err,
-                });
-            } else {
+        lookup(videoId)
+            .then(result => {
                 dispatch({
                     type: types.GET_SINGLE_VIDEO_INFO,
-                    payload: data.result,
+                    payload: result,
                 });
-            }
-        });
+            })
+            .catch(err => {
+                dispatch({
+                    type: types.GET_SINGLE_VIDEO_INFO_ERR,
+                    payload: err,
+                });
+            });
 
         history.push("/select");
     };

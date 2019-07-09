@@ -1,12 +1,9 @@
 import {
     Badge,
-    Button,
     Container,
     Divider,
     Grid,
     Hidden,
-    Icon,
-    IconButton,
     Paper,
     Tab,
     Tabs,
@@ -16,12 +13,13 @@ import { makeStyles } from "@material-ui/styles";
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
-import { getVideoInfo, search } from "../../actions";
+import { getVideoInfo, search, addToJobList } from "../../actions";
 import SearchBar from "../search-bar/SearchBar";
 import JobsList from "./JobsList";
+import JobsTopControl from "./JobsTopControl";
 import ResultList from "./ResultList";
 import "./SelectionPage.scss";
-import JobsTopControl from "./JobsTopControl";
+import DirectoryModal from "./DirectoryModal";
 
 const useStyles = makeStyles(theme => {
     return {
@@ -47,6 +45,10 @@ const SelectionPage = props => {
 
     useEffect(() => {
         // props.search("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+        props.addToJobList("tV8P6T5tTYs", true);
+        props.addToJobList("Bkttq3e5DcY", true);
+        props.addToJobList("JdTBIHX-r0M", true);
+        props.addToJobList("g1Gvi6q-OPM", true);
     }, []);
     return (
         <Container style={{ paddingTop: 20 }}>
@@ -55,7 +57,12 @@ const SelectionPage = props => {
                 <Divider />
                 <Grid container spacing={3} style={{ marginTop: 10 }}>
                     <Grid item xs={12} sm={6}>
-                        <Typography variant="h6">Result</Typography>
+                        <div
+                            className="title-section"
+                            style={{ height: 36, boxSizing: "content-box" }}
+                        >
+                            <Typography variant="h6">Result</Typography>
+                        </div>
                         <ResultList />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -111,6 +118,8 @@ const SelectionPage = props => {
                         </>
                     ))}
             </Hidden>
+
+            <DirectoryModal />
         </Container>
     );
 };
@@ -118,11 +127,11 @@ const SelectionPage = props => {
 const mapStateToProps = state => {
     return {
         resultsLength: state.results.videos.length,
-        jobsLength: _.size(state.jobs),
+        jobsLength: _.size(state.jobs.videos),
     };
 };
 
 export default connect(
     mapStateToProps,
-    { getVideoInfo, search }
+    { getVideoInfo, search, addToJobList }
 )(SelectionPage);

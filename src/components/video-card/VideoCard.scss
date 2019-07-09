@@ -17,6 +17,14 @@
 
             > * {
                 margin-left: 10px;
+
+                &:first-child {
+                    margin-left: 0;
+                }
+            }
+
+            > .spacer {
+                flex: 1 auto;
             }
         }
     }
