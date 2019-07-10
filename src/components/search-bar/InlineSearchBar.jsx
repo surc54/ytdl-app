@@ -1,6 +1,7 @@
 import React from "react";
 import { Field } from "redux-form";
 import { Tooltip, IconButton, Icon } from "@material-ui/core";
+import { pure } from "recompose";
 import "./InlineSearchBar.scss";
 
 /**
@@ -39,4 +40,4 @@ const InlineSearchBar = props => {
     );
 };
 
-export default InlineSearchBar;
+export default pure(InlineSearchBar);

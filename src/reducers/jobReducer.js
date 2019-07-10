@@ -3,7 +3,7 @@ import _ from "lodash";
 import { rickAstley } from "./sampleVideos";
 
 const INITIAL_STATE = {
-    generalFormat: "",
+    generalFormat: "hq-mp4",
     saveDirectory: null,
     videos: {
         [rickAstley.video_id]: {
@@ -31,8 +31,8 @@ export default (state = INITIAL_STATE, action) => {
                         position: _.size(state.videos) + 1,
                         video: action.payload.video,
                         format: action.payload.format,
-                        process:
-                            _.size(state.videos) === 3 ? "done" : "downloading", // TODO: CHANGE BACK
+                        process: "waiting",
+                        // _.size(state.videos) === 3 ? "done" : "downloading", // TODO: CHANGE BACK
                         percent: 0,
                     },
                 },
@@ -73,6 +73,46 @@ export default (state = INITIAL_STATE, action) => {
             return {
                 ...state,
                 videos: {},
+            };
+        case types.SET_SAVE_DIRECTORY:
+            return {
+                ...state,
+                saveDirectory: action.payload,
+            };
+        case types.DOWNLOAD_START:
+            return {
+                ...state,
+                videos: {
+                    ...state.videos,
+                    [action.payload]: {
+                        ...state.videos[action.payload],
+                        process: "downloading",
+                        percent: 0,
+                    },
+                },
+            };
+        case types.DOWNLOAD_COMPLETE:
+            return {
+                ...state,
+                videos: {
+                    ...state.videos,
+                    [action.payload]: {
+                        ...state.videos[action.payload],
+                        process: "done",
+                        percent: 100,
+                    },
+                },
+            };
+        case types.DOWNLOAD_PROGRESS:
+            return {
+                ...state,
+                videos: {
+                    ...state.videos,
+                    [action.payload.id]: {
+                        ...state.videos[action.payload.id],
+                        percent: action.payload.progress,
+                    },
+                },
             };
         default:
             return state;

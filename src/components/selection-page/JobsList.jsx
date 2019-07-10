@@ -12,6 +12,7 @@ import {
 import { useTheme } from "@material-ui/styles";
 import _ from "lodash";
 import React from "react";
+import { pure } from "recompose";
 import { connect } from "react-redux";
 import { setJobFormat } from "../../actions";
 import VideoCard from "../video-card/VideoCard";
@@ -34,6 +35,11 @@ const JobsList = props => {
     );
 
     const done = _.filter(props.jobs.videos, job => job.process === "done");
+
+    const waiting = _.filter(
+        props.jobs.videos,
+        job => job.process === "waiting"
+    );
 
     const showExpansionPanel = (
         title,
@@ -107,43 +113,41 @@ const JobsList = props => {
                         style: {
                             marginBottom: 10,
                         },
-                        defaultExpanded: true,
+                        defaultExpanded: false,
                     }
                 )}
-            {(inProgress.length !== 0 || done.length !== 0) && (
-                <>
-                    <Divider />
-                    <Typography
-                        align="center"
-                        style={{ marginTop: 10 }}
-                        color="textSecondary"
-                        variant="subtitle1"
-                        gutterBottom
-                    >
-                        The following items are waiting to start
-                    </Typography>
-                </>
-            )}
-            {_.chain(props.jobs.videos)
-                .filter(job => job.process === "waiting")
-                .map(job => {
-                    return (
-                        <VideoCard
-                            style={{
-                                marginRight: 15,
-                                marginLeft: isXS ? 15 : 0,
-                            }}
-                            job={job}
-                            video={job.video}
-                            format={job.format || ""}
-                            key={job.video.video_id}
-                            onFormatChange={e => {
-                                onFormatChange(e, job.video.video_id);
-                            }}
-                        />
-                    );
-                })
-                .value()}
+            {(inProgress.length !== 0 || done.length !== 0) &&
+                (waiting.length !== 0 && (
+                    <>
+                        <Divider />
+                        <Typography
+                            align="center"
+                            style={{ marginTop: 10 }}
+                            color="textSecondary"
+                            variant="subtitle1"
+                            gutterBottom
+                        >
+                            The following items are waiting to start
+                        </Typography>
+                    </>
+                ))}
+            {_.map(waiting, job => {
+                return (
+                    <VideoCard
+                        style={{
+                            marginRight: 15,
+                            marginLeft: isXS ? 15 : 0,
+                        }}
+                        job={job}
+                        video={job.video}
+                        format={job.format || ""}
+                        key={job.video.video_id}
+                        onFormatChange={e => {
+                            onFormatChange(e, job.video.video_id);
+                        }}
+                    />
+                );
+            })}
             {props.progress.statusBar && (
                 <div style={{ marginBottom: 70 }}></div>
             )}
@@ -158,7 +162,9 @@ const mapStateToProps = state => {
     };
 };
 
-export default connect(
-    mapStateToProps,
-    { setJobFormat }
-)(JobsList);
+export default pure(
+    connect(
+        mapStateToProps,
+        { setJobFormat }
+    )(JobsList)
+);

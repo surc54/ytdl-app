@@ -3,6 +3,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const ytdl = require("ytdl-core");
 const fs = require("fs");
+const filenamify = require("filenamify");
 
 // require("electron-reload")(__dirname, {
 //     electron: path.join(__dirname, "node_modules", "electron"),
@@ -36,7 +37,7 @@ app.on("ready", () => {
         "C:/Users/adith/AppData/Local/Microsoft/Edge Dev/User Data/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/3.6.0_0"
     );
 
-    mainWindow.webContents.toggleDevTools();
+    // mainWindow.webContents.toggleDevTools();
 
     mainWindow.once("ready-to-show", () => {
         mainWindow.show();
@@ -74,6 +75,102 @@ ipcMain.on("video:download", async (event, arg) => {
     );
 });
 
+ipcMain.on("ytdl:download", (event, arg) => {
+    console.log(arg);
+    arg.videos.forEach((video, index) => {
+        const url = `https://www.youtube.com/watch?v=${video.id}`;
+
+        let itag = null;
+        let container = null;
+        let quality = null;
+        if (video.format.startsWith("itag:")) {
+            const split = video.format.split(":");
+            itag = split[1];
+            container = split[2];
+            if (container === "unknown") {
+                container = "flv";
+            }
+        } else {
+            switch (video.format) {
+                case "hq-mp4":
+                    quality = "highest";
+                    container = "mp4";
+                    break;
+                case "lq-mp4":
+                    quality = "lowest";
+                    container = "mp4";
+                    break;
+                case "hq-mp3":
+                    quality = "highestaudio";
+                    container = "mp3";
+                    break;
+                case "lq-mp3":
+                    quality = "lowestaudio";
+                    container = "mp3";
+                    break;
+                case "hq-mp4-no-audio":
+                    quality = "highestvideo";
+                    container = "mp4";
+                    break;
+                case "lq-mp4-no-audio":
+                    quality = "lowestvideo";
+                    container = "mp4";
+                    break;
+                default:
+                    quality = "highest";
+                    container = "mp4";
+                    break;
+            }
+        }
+
+        const stream = ytdl(url, {
+            quality: itag ? itag : quality,
+            filter: !itag
+                ? (() => {
+                      if (quality.indexOf("audio") !== -1) {
+                          return "audioonly";
+                      } else if (quality.indexOf("video") !== -1) {
+                          return "videoonly";
+                      } else {
+                          return "audioandvideo";
+                      }
+                  })()
+                : null,
+        });
+
+        stream.pipe(
+            fs.createWriteStream(
+                path.join(
+                    arg.saveDirectory,
+                    filenamify(video.title, {
+                        replacement: "_",
+                    }) + `.${container}`
+                )
+            )
+        );
+
+        stream.on("end", () => {
+            console.log(`${video.id}: Stream Ended`);
+            event.reply(`ytdl:download-complete:${video.id}`, video.id);
+        });
+
+        stream.on("close", () => console.log(`${video.id}: Stream Closed`));
+
+        let lastProgress = new Date().getTime();
+        stream.on("progress", (chunkLength, downloaded, total) => {
+            if (new Date().getTime() - lastProgress > 1000) {
+                const percent = Math.round((downloaded * 100) / total);
+                event.reply(`ytdl:download-progress:${video.id}`, {
+                    id: video.id,
+                    progress: percent,
+                });
+
+                lastProgress = new Date().getTime();
+            }
+        });
+    });
+});
+
 ipcMain.on("ytdl:choose-directory", (event, arg) => {
     const resp = dialog.showOpenDialog(mainWindow, {
         title: "Choose save location",
@@ -82,7 +179,7 @@ ipcMain.on("ytdl:choose-directory", (event, arg) => {
         message: "Choose where to save your downloads",
     });
 
-    event.sender.send("ytdl:directory", resp);
+    event.reply("ytdl:directory", resp);
 });
 
 ipcMain.on("video:info", async (event, arg) => {
@@ -94,12 +191,12 @@ ipcMain.on("video:info", async (event, arg) => {
     } catch (e) {
         err = e;
     }
-    event.sender.send(`video:info-received`, {
+    event.reply(`video:info-received`, {
         status: err ? "fail" : "ok",
         err: err ? err.message : null,
         result: response,
     });
-    event.sender.send(`video:info-received:${arg}`, {
+    event.reply(`video:info-received:${arg}`, {
         status: err ? "fail" : "ok",
         err: err ? err.message : null,
         result: response,

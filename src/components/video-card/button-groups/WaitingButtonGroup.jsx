@@ -1,8 +1,24 @@
 import React from "react";
 import { IconButton, Icon, Button } from "@material-ui/core";
+import { connect } from "react-redux";
+import { startOneJob } from "../../../actions";
 import FormatSelect from "../FormatSelect";
 
 const WaitingButtonGroup = props => {
+    const resultButton = <Button variant="outlined">Add</Button>;
+
+    const jobButton = (
+        <Button
+            variant="outlined"
+            onClick={() => {
+                props.startOneJob(props.video.video_id);
+            }}
+            disabled={!props.format && !props.generalFormat}
+        >
+            Start
+        </Button>
+    );
+
     return (
         <>
             {props.job && (
@@ -16,14 +32,12 @@ const WaitingButtonGroup = props => {
                 onChange={props.onFormatChange}
                 value={props.format || ""}
             />
-            <Button
-                variant="outlined"
-                disabled={!props.format && !props.generalFormat}
-            >
-                {(props.job && "Start") || "Add"}
-            </Button>
+            {(props.job && jobButton) || resultButton}
         </>
     );
 };
 
-export default WaitingButtonGroup;
+export default connect(
+    null,
+    { startOneJob }
+)(WaitingButtonGroup);

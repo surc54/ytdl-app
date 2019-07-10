@@ -1,6 +1,7 @@
 import { Menu, MenuItem } from "@material-ui/core";
 import _ from "lodash";
 import React from "react";
+import { pure } from "recompose";
 
 /**
  *
@@ -29,4 +30,4 @@ const SearchBarRightClickMenu = props => {
     );
 };
 
-export default SearchBarRightClickMenu;
+export default pure(SearchBarRightClickMenu);

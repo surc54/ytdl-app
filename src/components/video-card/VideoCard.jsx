@@ -1,125 +1,136 @@
-import { Button, Icon, IconButton, Paper, Typography } from "@material-ui/core";
+import { Icon, IconButton, Paper, Typography } from "@material-ui/core";
 import _ from "lodash";
 import React, { useState } from "react";
 import { connect } from "react-redux";
 import { removeFromJobList, setJobFormat } from "../../actions";
-import FormatSelect from "./FormatSelect";
+import DoneButtonGroup from "./button-groups/DoneButtonGroup";
+import InProgressButtonGroup from "./button-groups/InProgressButtonGroup";
+import ResultsButtonGroup from "./button-groups/ResultsButtonGroup";
+import WaitingButtonGroup from "./button-groups/WaitingButtonGroup";
 import "./VideoCard.scss";
 import VideoDetailsDialog from "./VideoDetailsDialog";
 import VideoMoreMenu from "./VideoMoreMenu";
-import WaitingButtonGroup from "./button-groups/WaitingButtonGroup";
-import ResultsButtonGroup from "./button-groups/ResultsButtonGroup";
-import InProgressButtonGroup from "./button-groups/InProgressButtonGroup";
-import DoneButtonGroup from "./button-groups/DoneButtonGroup";
 
 /**
  * @param {videoInfo} props.video
  */
-const VideoCard = props => {
-    // useEffect(() => {
-    //     printFormatTable(props.video.formats)
-    // }, [props.video.formats]);
+class VideoCard extends React.Component {
+    render() {
+        // useEffect(() => {
+        //     printFormatTable(props.video.formats)
+        const [moreMenuAchorEl, setMoreMenuAchorEl] = useState(null);
+        const [videoDetailsOpen, setVideoDetailsOpen] = useState(false);
+        const givenStyle = this.props.style || {};
 
-    const [moreMenuAchorEl, setMoreMenuAchorEl] = useState(null);
-    const [videoDetailsOpen, setVideoDetailsOpen] = useState(false);
-    const givenStyle = props.style || {};
+        function handleCloseMoreMenu() {
+            setMoreMenuAchorEl(null);
+        }
 
-    function handleCloseMoreMenu() {
-        setMoreMenuAchorEl(null);
-    }
+        function openVideoDetails() {
+            setVideoDetailsOpen(true);
+        }
 
-    function openVideoDetails() {
-        setVideoDetailsOpen(true);
-    }
+        function handleCloseVideoDetails() {
+            setVideoDetailsOpen(false);
+        }
 
-    function handleCloseVideoDetails() {
-        setVideoDetailsOpen(false);
-    }
+        const removeVideo = () => {
+            this.props.removeFromJobList(this.props.video.video_id);
+        };
 
-    const removeVideo = () => {
-        props.removeFromJobList(props.video.video_id);
-    };
-
-    return (
-        <Paper
-            elevation={4}
-            className="video-card"
-            style={{
-                ...givenStyle,
-                backgroundImage: `url("https://img.youtube.com/vi/${props.video.video_id}/default.jpg")`,
-                marginBottom: 10,
-            }}
-        >
-            <div className="wrapper">
-                <Typography variant="h6" noWrap>
-                    {props.video.title}
-                </Typography>
-                <Typography
-                    variant="button"
-                    gutterBottom
-                    style={{ color: "#aaa" }}
-                    noWrap
-                >
-                    {props.video.author.name}
-                </Typography>
-                <div className="actions">
-                    {!props.job ? (
-                        <ResultsButtonGroup {...props} />
-                    ) : (
-                        (process => {
-                            switch (process) {
-                                case "waiting":
-                                    return (
-                                        <WaitingButtonGroup
-                                            {...props}
-                                            removeVideo={removeVideo}
-                                        />
-                                    );
-                                case "downloading":
-                                    return <InProgressButtonGroup {...props} />;
-                                case "done":
-                                    return (
-                                        <DoneButtonGroup
-                                            {...props}
-                                            removeVideo={removeVideo}
-                                        />
-                                    );
-                                default:
-                                    return null;
-                            }
-                        })(props.job.process)
-                    )}
-                    <IconButton
-                        size="small"
-                        onClick={e => {
-                            setMoreMenuAchorEl(e.currentTarget);
+        return (
+            <Paper
+                elevation={4}
+                className="video-card"
+                style={{
+                    ...givenStyle,
+                    backgroundImage: `url("https://img.youtube.com/vi/${this.props.video.video_id}/default.jpg")`,
+                    marginBottom: 10,
+                }}
+            >
+                <div className="wrapper">
+                    <Typography variant="h6" noWrap>
+                        {this.props.video.title}
+                    </Typography>
+                    <Typography
+                        variant="button"
+                        gutterBottom
+                        style={{
+                            color: "#aaa",
                         }}
+                        noWrap
                     >
-                        <Icon>more_vert</Icon>
-                    </IconButton>
-                    <VideoMoreMenu
-                        job={props.job}
-                        anchorEl={moreMenuAchorEl}
-                        onOpenVideoDetails={openVideoDetails}
-                        onClose={handleCloseMoreMenu}
-                        disableStartDownload={
-                            !props.format && !props.generalFormat
-                        }
-                        resetFormat={() =>
-                            props.setJobFormat(props.video.video_id, "")
-                        }
-                        removeVideo={removeVideo}
-                    />
-                    <VideoDetailsDialog
-                        open={videoDetailsOpen}
-                        onClose={handleCloseVideoDetails}
-                        video={props.video}
-                    />
+                        {this.props.video.author.name}
+                    </Typography>
+                    <div className="actions">
+                        {!this.props.job ? (
+                            <ResultsButtonGroup {...this.props} />
+                        ) : (
+                            (process => {
+                                switch (process) {
+                                    case "waiting":
+                                        return (
+                                            <WaitingButtonGroup
+                                                {...this.props}
+                                                removeVideo={removeVideo}
+                                            />
+                                        );
+
+                                    case "downloading":
+                                        return (
+                                            <InProgressButtonGroup
+                                                {...this.props}
+                                            />
+                                        );
+
+                                    case "done":
+                                        return (
+                                            <DoneButtonGroup
+                                                {...this.props}
+                                                removeVideo={removeVideo}
+                                            />
+                                        );
+
+                                    default:
+                                        return null;
+                                }
+                            })(this.props.job.process)
+                        )}
+                        <IconButton
+                            size="small"
+                            onClick={e => {
+                                setMoreMenuAchorEl(e.currentTarget);
+                            }}
+                        >
+                            <Icon>more_vert</Icon>
+                        </IconButton>
+                        <VideoMoreMenu
+                            job={this.props.job}
+                            anchorEl={moreMenuAchorEl}
+                            onOpenVideoDetails={openVideoDetails}
+                            onClose={handleCloseMoreMenu}
+                            disableStartDownload={
+                                !this.props.format && !this.props.generalFormat
+                            }
+                            resetFormat={() =>
+                                this.props.setJobFormat(
+                                    this.props.video.video_id,
+                                    ""
+                                )
+                            }
+                            removeVideo={removeVideo}
+                        />
+                        <VideoDetailsDialog
+                            open={videoDetailsOpen}
+                            onClose={handleCloseVideoDetails}
+                            video={this.props.video}
+                        />
+                    </div>
                 </div>
-            </div>
-        </Paper>
-    );
-};
+            </Paper>
+        );
+    }
+}
 
 // probably dont need to export but the unused error
 // was annoying

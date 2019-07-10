@@ -1,8 +1,9 @@
 import { CircularProgress, Typography } from "@material-ui/core";
+import { pure } from "recompose";
 import React from "react";
 
 const WaitingButtonGroup = props => {
-    const { process, percent } = props.job;
+    const { percent } = props.job;
 
     const printPercent = () => {
         let invis = "";
@@ -30,4 +31,4 @@ const WaitingButtonGroup = props => {
     );
 };
 
-export default WaitingButtonGroup;
+export default pure(WaitingButtonGroup);

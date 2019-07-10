@@ -9,7 +9,7 @@ import "./SearchBar.scss";
 
 const { clipboard } = window.require("electron");
 
-class SearchBar extends React.Component {
+class SearchBar extends React.PureComponent {
     state = {
         snackbars: {
             clipboard: {

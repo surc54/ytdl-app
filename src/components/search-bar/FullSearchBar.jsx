@@ -1,6 +1,7 @@
 import { Button } from "@material-ui/core";
 import React from "react";
 import { Field } from "redux-form";
+import { pure } from "recompose";
 
 /**
  * @param props.textField
@@ -45,4 +46,4 @@ function FullSearchBar(props) {
     );
 }
 
-export default FullSearchBar;
+export default pure(FullSearchBar);

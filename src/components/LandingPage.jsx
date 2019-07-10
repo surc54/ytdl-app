@@ -1,5 +1,6 @@
 import { Container, Typography } from "@material-ui/core";
 import React from "react";
+import { pure } from "recompose";
 import "./LandingPage.scss";
 import SearchBar from "./search-bar/SearchBar";
 
@@ -21,4 +22,4 @@ const LandingPage = () => {
     );
 };
 
-export default LandingPage;
+export default pure(LandingPage);

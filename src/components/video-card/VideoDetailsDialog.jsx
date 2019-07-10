@@ -11,6 +11,7 @@ import {
     ExpansionPanelDetails,
     Icon,
 } from "@material-ui/core";
+import { pure } from "recompose";
 import _ from "lodash";
 import { makeStyles } from "@material-ui/styles";
 import "./VideoDetailsDialog.scss";
@@ -163,4 +164,4 @@ const VideoDetailsDialog = props => {
     );
 };
 
-export default VideoDetailsDialog;
+export default pure(VideoDetailsDialog);

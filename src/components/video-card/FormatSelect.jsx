@@ -9,6 +9,7 @@ import {
 } from "@material-ui/core";
 import { createStyles, makeStyles } from "@material-ui/styles";
 import React from "react";
+import { pure } from "recompose";
 import _ from "lodash";
 
 const useStyles = makeStyles(theme =>
@@ -64,7 +65,8 @@ const FormatSelect = props => {
         return formats.map(f => (
             <MenuItem
                 key={f.itag}
-                value={JSON.stringify({ itag: f.itag })}
+                value={`itag:${f.itag}:${f.container || "unknown"}:${type ||
+                    "unknown"}`}
                 style={{
                     paddingLeft: 35,
                 }}
@@ -118,15 +120,15 @@ const FormatSelect = props => {
                     <Divider key="div_2" />,
                     renderMenuLabel("Video Formats"),
                 ]}
-                {renderMenuItems(videoFormats)}
+                {renderMenuItems(videoFormats, "audioandvideo")}
                 {otherFormats.length !== 0 && [
                     <Divider key="div_3" />,
                     renderMenuLabel("Other Formats"),
                 ]}
-                {renderMenuItems(otherFormats)}
+                {renderMenuItems(otherFormats, "audioandvideo")}
             </Select>
         </FormControl>
     );
 };
 
-export default FormatSelect;
+export default pure(FormatSelect);

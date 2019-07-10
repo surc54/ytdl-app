@@ -1,4 +1,5 @@
 import * as types from "./types";
+import _ from "lodash";
 
 export const setProgressStatus = status => {
     return {
@@ -25,5 +26,26 @@ export const showProgressBar = (show = true) => {
     return {
         type: types.SHOW_PROGRESS_BAR,
         payload: show,
+    };
+};
+
+export const updateProgress = () => {
+    return (dispatch, getState) => {
+        const state = getState();
+        const jobs = state.jobs.videos;
+
+        let total = 0;
+        let percentDone = 0;
+        _.forEach(jobs, ({ process, percent }, key) => {
+            if (!process) return;
+            if (process === "waiting") return;
+            total += 100;
+            percentDone += percent;
+        });
+        if (total === 0) {
+            dispatch(setTotalProgress(0));
+        } else {
+            dispatch(setTotalProgress(Math.floor((100 * percentDone) / total)));
+        }
     };
 };

@@ -1,6 +1,6 @@
+import { Button, Icon, IconButton, Tooltip } from "@material-ui/core";
 import React from "react";
-import { IconButton, Icon, Button, Tooltip } from "@material-ui/core";
-import FormatSelect from "../FormatSelect";
+import { pure } from "recompose";
 
 const DoneButtonGroup = props => {
     return (
@@ -19,4 +19,4 @@ const DoneButtonGroup = props => {
     );
 };
 
-export default DoneButtonGroup;
+export default pure(DoneButtonGroup);

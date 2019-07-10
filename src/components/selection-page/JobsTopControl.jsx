@@ -13,7 +13,12 @@ import { makeStyles } from "@material-ui/styles";
 import React, { useState } from "react";
 import _ from "lodash";
 import { connect } from "react-redux";
-import { clearJobs, resetAllJobsFormat, setGeneralFormat } from "../../actions";
+import {
+    clearJobs,
+    resetAllJobsFormat,
+    setGeneralFormat,
+    startAllJobs,
+} from "../../actions";
 import "./JobsTopControl.scss";
 const { ipcRenderer } = window.require("electron");
 
@@ -30,6 +35,8 @@ const useStyles = makeStyles(theme => {
 });
 
 const JobsTopControl = props => {
+    console.log("JobsTopControl re-rendered!");
+
     const [anchorEl, setAnchorEl] = useState(null);
     const classes = useStyles();
 
@@ -100,9 +107,9 @@ const JobsTopControl = props => {
                     <MenuItem value="hq-mp4" className={classes.menuIndent}>
                         .mp4 - High Quality
                     </MenuItem>
-                    <MenuItem value="mq-mp4" className={classes.menuIndent}>
+                    {/* <MenuItem value="mq-mp4" className={classes.menuIndent}>
                         .mp4 - Medium Quality
-                    </MenuItem>
+                    </MenuItem> */}
                     <MenuItem value="lq-mp4" className={classes.menuIndent}>
                         .mp4 - Low Quality
                     </MenuItem>
@@ -112,9 +119,9 @@ const JobsTopControl = props => {
                     <MenuItem value="hq-mp3" className={classes.menuIndent}>
                         .mp3 - High Quality
                     </MenuItem>
-                    <MenuItem value="mq-mp3" className={classes.menuIndent}>
+                    {/* <MenuItem value="mq-mp3" className={classes.menuIndent}>
                         .mp3 - Medium Quality
-                    </MenuItem>
+                    </MenuItem> */}
                     <MenuItem value="lq-mp3" className={classes.menuIndent}>
                         .mp3 - Low Quality
                     </MenuItem>
@@ -127,12 +134,12 @@ const JobsTopControl = props => {
                     >
                         .mp4 - High Quality
                     </MenuItem>
-                    <MenuItem
+                    {/* <MenuItem
                         value="mq-mp4-no-audio"
                         className={classes.menuIndent}
                     >
                         .mp4 - Medium Quality
-                    </MenuItem>
+                    </MenuItem> */}
                     <MenuItem
                         value="lq-mp4-no-audio"
                         className={classes.menuIndent}
@@ -145,8 +152,7 @@ const JobsTopControl = props => {
                 variant="contained"
                 color="primary"
                 onClick={() => {
-                    const { ipcRenderer } = window.require("electron");
-                    ipcRenderer.send("video:download");
+                    props.startAllJobs();
                 }}
                 disabled={!props.generalFormat}
             >
@@ -170,5 +176,5 @@ const mapStateToProps = state => {
 
 export default connect(
     mapStateToProps,
-    { clearJobs, resetAllJobsFormat, setGeneralFormat }
+    { clearJobs, resetAllJobsFormat, setGeneralFormat, startAllJobs }
 )(JobsTopControl);

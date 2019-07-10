@@ -1,6 +1,7 @@
 import { Button } from "@material-ui/core";
 import React from "react";
 import FormatSelect from "../FormatSelect";
+import { pure } from "recompose";
 
 const ResultsButtonGroup = props => {
     return (
@@ -15,4 +16,4 @@ const ResultsButtonGroup = props => {
     );
 };
 
-export default ResultsButtonGroup;
+export default pure(ResultsButtonGroup);

@@ -3,8 +3,8 @@ import * as types from "../actions/types";
 const INITIAL_STATE = {
     status: "Waiting to start",
     totalProgress: 67,
-    statusBar: true,
-    progressBar: true,
+    statusBar: false,
+    progressBar: false,
 };
 
 export default (state = INITIAL_STATE, action) => {

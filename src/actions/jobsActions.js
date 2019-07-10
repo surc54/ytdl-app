@@ -1,6 +1,12 @@
 import * as types from "./types";
 import lookup from "../apis/VideoLookup";
 import _ from "lodash";
+import {
+    showProgressBar,
+    showStatusBar,
+    updateProgress,
+    setProgressStatus,
+} from "./progressActions";
 const { ipcRenderer } = window.require("electron");
 
 export const addToJobList = (video, lookupRequired = false) => {
@@ -104,12 +110,14 @@ export const startOneJob = videoId => {
     return async (dispatch, getState) => {
         const state = getState();
         const jobs = state.jobs.videos;
-        const job = _.find(jobs, { video_id: videoId });
+        const job = jobs[videoId];
+
         if (!job) {
             throw new Error(
                 `Could not find video "${videoId}" while attempting to start one job.`
             );
         }
+
         if (!state.jobs.saveDirectory) {
             dispatch(
                 setSaveDirectory(err => {
@@ -123,6 +131,38 @@ export const startOneJob = videoId => {
             );
             return;
         }
+
+        if (!job.format && !state.jobs.generalFormat) {
+            throw new Error("No selected format.");
+        }
+
+        listenForCompletion(videoId, dispatch, getState);
+        listenForProgress(videoId, dispatch, getState);
+
+        ipcRenderer.send("ytdl:download", {
+            requestType: "single",
+            saveDirectory: state.jobs.saveDirectory,
+            videos: [
+                {
+                    id: videoId,
+                    format: job.format || state.jobs.generalFormat,
+                    title: job.video.title,
+                },
+            ],
+        });
+
+        dispatch(setProgressStatus("Downloading"));
+
+        dispatch(showProgressBar(true));
+
+        dispatch(showStatusBar(true));
+
+        dispatch({
+            type: types.DOWNLOAD_START,
+            payload: videoId,
+        });
+
+        dispatch(updateProgress());
 
         // SEND IPCRENDERER REQUEST
     };
@@ -139,7 +179,98 @@ export const startOneJob = videoId => {
 };
 
 export const startAllJobs = () => {
-    /*
-        The above, but with every job.
-    */
+    return async (dispatch, getState) => {
+        const state = getState();
+        const jobs = state.jobs.videos;
+        const videos = [];
+
+        if (!state.jobs.saveDirectory) {
+            dispatch(
+                setSaveDirectory(err => {
+                    if (err) {
+                        throw new Error(
+                            `Could not start all jobs because save directory was not set.`
+                        );
+                    }
+                    dispatch(startAllJobs());
+                })
+            );
+            return;
+        }
+
+        _.forEach(jobs, (job, id) => {
+            if (!job.format && !state.jobs.generalFormat) {
+                throw new Error(`No selected format (${id}).`);
+            }
+
+            if (job.process !== "waiting") return;
+
+            videos.push({
+                id: id,
+                format: job.format || state.jobs.generalFormat,
+                title: job.video.title,
+            });
+
+            dispatch({
+                type: types.DOWNLOAD_START,
+                payload: id,
+            });
+
+            listenForCompletion(id, dispatch, getState);
+            listenForProgress(id, dispatch, getState);
+        });
+
+        ipcRenderer.send("ytdl:download", {
+            requestType: "multiple",
+            saveDirectory: state.jobs.saveDirectory,
+            videos,
+        });
+
+        dispatch(setProgressStatus("Downloading"));
+
+        dispatch(showProgressBar(true));
+
+        dispatch(showStatusBar(true));
+
+        dispatch(updateProgress());
+
+        // SEND IPCRENDERER REQUEST
+    };
+};
+
+const listenForCompletion = (videoId, dispatch, getState) => {
+    ipcRenderer.once(`ytdl:download-complete:${videoId}`, (e, args) => {
+        dispatch({
+            type: types.DOWNLOAD_COMPLETE,
+            payload: videoId,
+        });
+
+        ipcRenderer.removeAllListeners(`ytdl:download-progress:${videoId}`);
+
+        dispatch(updateProgress());
+
+        const state = getState();
+
+        const inProgress = _.filter(
+            state.jobs.videos,
+            job => job.process !== "waiting" && job.process !== "done"
+        );
+
+        if (inProgress.length === 0) {
+            // dispatch(showProgressBar(false));
+            dispatch(showStatusBar(false));
+            dispatch(setProgressStatus("Complete"));
+        }
+    });
+};
+
+const listenForProgress = (videoId, dispatch, getState) => {
+    ipcRenderer.on(`ytdl:download-progress:${videoId}`, (e, args) => {
+        dispatch({
+            type: types.DOWNLOAD_PROGRESS,
+            payload: args,
+        });
+
+        dispatch(updateProgress());
+    });
 };

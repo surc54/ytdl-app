@@ -6,6 +6,7 @@ import {
     Button,
     DialogActions,
 } from "@material-ui/core";
+import { pure } from "recompose";
 
 const { ipcRenderer } = window.require("electron");
 
@@ -32,4 +33,4 @@ const DirectoryModal = props => {
     );
 };
 
-export default DirectoryModal;
+export default pure(DirectoryModal);

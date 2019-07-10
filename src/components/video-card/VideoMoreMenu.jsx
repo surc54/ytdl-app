@@ -1,4 +1,5 @@
 import { Menu, MenuItem } from "@material-ui/core";
+import { pure } from "recompose";
 import React from "react";
 
 const VideoMoreMenu = props => {
@@ -61,4 +62,4 @@ const VideoMoreMenu = props => {
     );
 };
 
-export default VideoMoreMenu;
+export default pure(VideoMoreMenu);

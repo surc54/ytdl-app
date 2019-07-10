@@ -1,6 +1,7 @@
 import { Icon } from "@material-ui/core";
 import React from "react";
 import { connect } from "react-redux";
+import { pure } from "recompose";
 import "./TitleBar.scss";
 import WindowButton from "./WindowButton";
 const { ipcRenderer } = window.require("electron");
@@ -41,10 +42,7 @@ class TitleBar extends React.Component {
                         control="maximize"
                         onClick={this.onMaximizeClick}
                     />
-                    <WindowButton
-                        control="close"
-                        onClick={this.onCloseClick}
-                    />
+                    <WindowButton control="close" onClick={this.onCloseClick} />
                 </div>
             </div>
         );
@@ -67,4 +65,4 @@ const draggableArea_mapStateToProps = state => {
 
 const DraggableArea = connect(draggableArea_mapStateToProps)(DraggableAreaRaw);
 
-export default TitleBar;
+export default pure(TitleBar);
