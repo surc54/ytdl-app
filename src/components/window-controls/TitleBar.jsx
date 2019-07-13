@@ -1,7 +1,6 @@
 import { Icon } from "@material-ui/core";
 import React from "react";
 import { connect } from "react-redux";
-import { pure } from "recompose";
 import "./TitleBar.scss";
 import WindowButton from "./WindowButton";
 const { ipcRenderer } = window.require("electron");
@@ -65,4 +64,4 @@ const draggableArea_mapStateToProps = state => {
 
 const DraggableArea = connect(draggableArea_mapStateToProps)(DraggableAreaRaw);
 
-export default pure(TitleBar);
+export default TitleBar;

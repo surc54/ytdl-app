@@ -2,7 +2,7 @@ import { Snackbar, TextField } from "@material-ui/core";
 import React from "react";
 import { connect } from "react-redux";
 import { reduxForm, submit } from "redux-form";
-import { search } from "../../actions";
+import { search, setResultsError } from "../../actions";
 import FullSearchBar from "./FullSearchBar";
 import InlineSearchBar from "./InlineSearchBar";
 import "./SearchBar.scss";
@@ -79,7 +79,11 @@ class SearchBar extends React.PureComponent {
 
     onSubmit = values => {
         console.log("Submit detected: ", values);
-        this.props.search(values.search);
+        try {
+            this.props.search(values.search);
+        } catch (e) {
+            this.props.setResultsError(e.message);
+        }
     };
 
     render() {
@@ -137,6 +141,10 @@ const validate = values => {
 
 const wrappedForm = reduxForm({
     form: "search",
+    initialValues: {
+        search:
+            "https://www.youtube.com/playlist?list=PLKEKtyEI8MqwguTB3a3mV7vuA-FGQCmUG",
+    },
     validate,
     destroyOnUnmount: false,
 })(SearchBar);
@@ -156,5 +164,5 @@ const mapStateToProps = (state, ownProps) => {
 
 export default connect(
     mapStateToProps,
-    { search }
+    { search, setResultsError }
 )(wrappedForm);

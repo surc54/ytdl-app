@@ -1,34 +1,47 @@
 import { CircularProgress, Typography } from "@material-ui/core";
-import { pure } from "recompose";
 import React from "react";
 
-const WaitingButtonGroup = props => {
-    const { percent } = props.job;
+class InProgressButtonGroup extends React.Component {
+    shouldComponentUpdate(nextProps) {
+        return this.props.job.percent !== nextProps.job.percent;
+    }
 
-    const printPercent = () => {
-        let invis = "";
-        if (percent < 10) {
-            invis = "00";
-        } else if (percent < 99) {
-            invis = "0";
-        }
+    render() {
+        const { percent } = this.props.job;
+
         return (
             <>
-                <span style={{ color: "rgba(255, 255, 255, 0.1)" }}>
-                    {invis}
-                </span>
-                {percent}
+                {/* <Typography variant="button">{process}</Typography> */}
+                <CircularProgress size={20} />
+                <Typography variant="button">
+                    {printPercent(percent)}%
+                </Typography>
             </>
         );
-    };
+    }
+}
+
+const printPercent = percent => {
+    let invis = "";
+
+    if (percent < 10) {
+        invis = "00";
+    } else if (percent < 99) {
+        invis = "0";
+    }
 
     return (
         <>
-            {/* <Typography variant="button">{process}</Typography> */}
-            <CircularProgress size={20} />
-            <Typography variant="button">{printPercent()}%</Typography>
+            <span
+                style={{
+                    color: "rgba(255, 255, 255, 0.1)",
+                }}
+            >
+                {invis}
+            </span>
+            {percent}
         </>
     );
 };
 
-export default pure(WaitingButtonGroup);
+export default InProgressButtonGroup;

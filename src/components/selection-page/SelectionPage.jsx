@@ -20,6 +20,7 @@ import JobsTopControl from "./JobsTopControl";
 import ResultList from "./ResultList";
 import "./SelectionPage.scss";
 import DirectoryModal from "./DirectoryModal";
+import ResultsTopControl from "./ResultsTopControl";
 
 const useStyles = makeStyles(theme => {
     return {
@@ -37,6 +38,7 @@ const useStyles = makeStyles(theme => {
 const SelectionPage = props => {
     const classes = useStyles();
     const [currentTab, setCurrentTab] = useState("results");
+    console.log(`SelectionPage rendered!`);
 
     const onTabChange = (e, val) => {
         console.log(e);
@@ -44,11 +46,12 @@ const SelectionPage = props => {
     };
 
     useEffect(() => {
-        // props.search("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+        props.search("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
         props.addToJobList("tV8P6T5tTYs", true);
         props.addToJobList("Bkttq3e5DcY", true);
         props.addToJobList("JdTBIHX-r0M", true);
         props.addToJobList("g1Gvi6q-OPM", true);
+        // props.addToJobList("5zqjusBY8_c", true);
     }, []);
     return (
         <Container style={{ paddingTop: 20 }}>
@@ -57,11 +60,11 @@ const SelectionPage = props => {
                 <Divider />
                 <Grid container spacing={3} style={{ marginTop: 10 }}>
                     <Grid item xs={12} sm={6}>
-                        <div
-                            className="title-section"
-                            style={{ height: 36, boxSizing: "content-box" }}
-                        >
-                            <Typography variant="h6">Result</Typography>
+                        <div className="title-section">
+                            <Typography variant="h6">Results</Typography>
+                            <ResultsTopControl
+                                resultsLength={props.resultsLength}
+                            />
                         </div>
                         <ResultList />
                     </Grid>

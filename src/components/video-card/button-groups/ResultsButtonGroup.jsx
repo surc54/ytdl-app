@@ -4,14 +4,19 @@ import FormatSelect from "../FormatSelect";
 import { pure } from "recompose";
 
 const ResultsButtonGroup = props => {
+    const { addToJobList, added } = props;
     return (
         <>
-            <FormatSelect
-                formats={props.video.formats}
-                onChange={props.onFormatChange}
-                value={props.format || ""}
-            />
-            <Button variant="outlined">Add</Button>
+            {!added && (
+                <FormatSelect
+                    formats={props.video.formats}
+                    onChange={props.onFormatChange}
+                    value={props.format || ""}
+                />
+            )}
+            <Button variant="outlined" onClick={addToJobList} disabled={added}>
+                Add{added && "ed"}
+            </Button>
         </>
     );
 };

@@ -1,28 +1,15 @@
 import * as types from "../actions/types";
 import _ from "lodash";
-import { rickAstley } from "./sampleVideos";
 
 const INITIAL_STATE = {
     generalFormat: "hq-mp4",
     saveDirectory: null,
-    videos: {
-        [rickAstley.video_id]: {
-            position: 1,
-            video: rickAstley,
-            format: "",
-            process: "waiting",
-            percent: 0,
-        },
-    },
+    videos: {},
 };
 
 export default (state = INITIAL_STATE, action) => {
     switch (action.type) {
         case types.ADD_TO_JOB_LIST:
-            console.log(
-                `Adding video to job-list: ${action.payload.video.video_id}`,
-                action.payload
-            );
             return {
                 ...state,
                 videos: {
@@ -35,6 +22,25 @@ export default (state = INITIAL_STATE, action) => {
                         // _.size(state.videos) === 3 ? "done" : "downloading", // TODO: CHANGE BACK
                         percent: 0,
                     },
+                },
+            };
+        case types.ADD_MULTIPLE_TO_JOB_LIST:
+            const newVideos = {};
+            action.payload.forEach((v, index) => {
+                newVideos[v.video.video_id] = {
+                    position: _.size(state.videos) + 1 + index,
+                    video: v.video,
+                    format: v.format,
+                    process: "waiting",
+                    percent: 0,
+                };
+            });
+
+            return {
+                ...state,
+                videos: {
+                    ...state.videos,
+                    ...newVideos,
                 },
             };
         case types.REMOVE_FROM_JOB_LIST:
@@ -74,6 +80,14 @@ export default (state = INITIAL_STATE, action) => {
                 ...state,
                 videos: {},
             };
+        case types.CLEAR_COMPLETE_JOBS:
+            return {
+                ...state,
+                videos: _.omitBy(
+                    state.videos,
+                    (val, key) => val.process === "done"
+                ),
+            };
         case types.SET_SAVE_DIRECTORY:
             return {
                 ...state,
@@ -96,10 +110,11 @@ export default (state = INITIAL_STATE, action) => {
                 ...state,
                 videos: {
                     ...state.videos,
-                    [action.payload]: {
-                        ...state.videos[action.payload],
+                    [action.payload.id]: {
+                        ...state.videos[action.payload.id],
                         process: "done",
                         percent: 100,
+                        path: action.payload.path,
                     },
                 },
             };

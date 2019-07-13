@@ -1,8 +1,13 @@
 import { Icon, IconButton, Paper, Typography } from "@material-ui/core";
 import _ from "lodash";
-import React, { useState } from "react";
+import React from "react";
 import { connect } from "react-redux";
-import { removeFromJobList, setJobFormat } from "../../actions";
+import {
+    removeFromJobList,
+    setJobFormat,
+    startOneJob,
+    addToJobList,
+} from "../../actions";
 import DoneButtonGroup from "./button-groups/DoneButtonGroup";
 import InProgressButtonGroup from "./button-groups/InProgressButtonGroup";
 import ResultsButtonGroup from "./button-groups/ResultsButtonGroup";
@@ -15,28 +20,76 @@ import VideoMoreMenu from "./VideoMoreMenu";
  * @param {videoInfo} props.video
  */
 class VideoCard extends React.Component {
+    shouldComponentUpdate(nextProps, nextState) {
+        if (nextState !== this.state) {
+            return true;
+        }
+
+        if (nextProps.video !== this.props.video) {
+            return true;
+        }
+
+        if (nextProps.job !== this.props.job) {
+            return true;
+        }
+
+        if (nextProps.format !== this.props.format) {
+            return true;
+        }
+
+        if (nextProps.jobVideo !== this.props.jobVideo) {
+            return true;
+        }
+
+        return false;
+    }
+
+    state = {
+        moreMenuAnchorEl: null,
+        videoDetailsOpen: false,
+    };
+
+    setMoreMenuAnchorEl = val => {
+        this.setState({
+            moreMenuAnchorEl: val,
+        });
+    };
+
+    setVideoDetailsOpen = val => {
+        this.setState({
+            videoDetailsOpen: val,
+        });
+    };
+
+    handleCloseMoreMenu = () => {
+        this.setMoreMenuAnchorEl(null);
+    };
+
+    openVideoDetails = () => {
+        this.setVideoDetailsOpen(true);
+    };
+
+    handleCloseVideoDetails = () => {
+        this.setVideoDetailsOpen(false);
+    };
+
+    startDownload = () => {
+        this.props.startOneJob(this.props.video.video_id);
+    };
+
+    addToJobList = () => {
+        this.props.addToJobList(this.props.video, false, this.props.format);
+    };
+
+    removeVideo = () => {
+        this.props.removeFromJobList(this.props.video.video_id);
+    };
+
+    resetFormat = () => this.props.setJobFormat(this.props.video.video_id, "");
+
     render() {
-        // useEffect(() => {
-        //     printFormatTable(props.video.formats)
-        const [moreMenuAchorEl, setMoreMenuAchorEl] = useState(null);
-        const [videoDetailsOpen, setVideoDetailsOpen] = useState(false);
+        console.log(`Video Card ${this.props.video.video_id} rendered!`);
         const givenStyle = this.props.style || {};
-
-        function handleCloseMoreMenu() {
-            setMoreMenuAchorEl(null);
-        }
-
-        function openVideoDetails() {
-            setVideoDetailsOpen(true);
-        }
-
-        function handleCloseVideoDetails() {
-            setVideoDetailsOpen(false);
-        }
-
-        const removeVideo = () => {
-            this.props.removeFromJobList(this.props.video.video_id);
-        };
 
         return (
             <Paper
@@ -64,7 +117,11 @@ class VideoCard extends React.Component {
                     </Typography>
                     <div className="actions">
                         {!this.props.job ? (
-                            <ResultsButtonGroup {...this.props} />
+                            <ResultsButtonGroup
+                                {...this.props}
+                                addToJobList={this.addToJobList}
+                                added={this.props.jobVideo}
+                            />
                         ) : (
                             (process => {
                                 switch (process) {
@@ -72,7 +129,7 @@ class VideoCard extends React.Component {
                                         return (
                                             <WaitingButtonGroup
                                                 {...this.props}
-                                                removeVideo={removeVideo}
+                                                removeVideo={this.removeVideo}
                                             />
                                         );
 
@@ -87,7 +144,7 @@ class VideoCard extends React.Component {
                                         return (
                                             <DoneButtonGroup
                                                 {...this.props}
-                                                removeVideo={removeVideo}
+                                                removeVideo={this.removeVideo}
                                             />
                                         );
 
@@ -99,30 +156,34 @@ class VideoCard extends React.Component {
                         <IconButton
                             size="small"
                             onClick={e => {
-                                setMoreMenuAchorEl(e.currentTarget);
+                                this.setMoreMenuAnchorEl(e.currentTarget);
                             }}
                         >
                             <Icon>more_vert</Icon>
                         </IconButton>
                         <VideoMoreMenu
-                            job={this.props.job}
-                            anchorEl={moreMenuAchorEl}
-                            onOpenVideoDetails={openVideoDetails}
-                            onClose={handleCloseMoreMenu}
+                            job={!!this.props.job}
+                            startDownload={this.startDownload}
+                            addToJobList={
+                                (!this.props.job && this.addToJobList) || null
+                            }
+                            added={this.props.jobVideo}
+                            process={
+                                (this.props.job && this.props.job.process) ||
+                                null
+                            }
+                            anchorEl={this.state.moreMenuAnchorEl}
+                            onOpenVideoDetails={this.openVideoDetails}
+                            onClose={this.handleCloseMoreMenu}
                             disableStartDownload={
                                 !this.props.format && !this.props.generalFormat
                             }
-                            resetFormat={() =>
-                                this.props.setJobFormat(
-                                    this.props.video.video_id,
-                                    ""
-                                )
-                            }
-                            removeVideo={removeVideo}
+                            resetFormat={this.resetFormat}
+                            removeVideo={this.removeVideo}
                         />
                         <VideoDetailsDialog
-                            open={videoDetailsOpen}
-                            onClose={handleCloseVideoDetails}
+                            open={this.state.videoDetailsOpen}
+                            onClose={this.handleCloseVideoDetails}
                             video={this.props.video}
                         />
                     </div>
@@ -163,10 +224,11 @@ export function printFormatTable(formats) {
 const mapStateToProps = (state, ownProps) => {
     return {
         generalFormat: state.jobs.generalFormat,
+        jobVideo: !!state.jobs.videos[ownProps.video.video_id],
     };
 };
 
 export default connect(
     mapStateToProps,
-    { removeFromJobList, setJobFormat }
+    { removeFromJobList, setJobFormat, startOneJob, addToJobList }
 )(VideoCard);

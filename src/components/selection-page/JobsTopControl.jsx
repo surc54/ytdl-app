@@ -18,6 +18,7 @@ import {
     resetAllJobsFormat,
     setGeneralFormat,
     startAllJobs,
+    setSaveDirectory,
 } from "../../actions";
 import "./JobsTopControl.scss";
 const { ipcRenderer } = window.require("electron");
@@ -55,11 +56,7 @@ const JobsTopControl = props => {
                 onClose={handleClose}
             >
                 <MenuItem
-                    onClick={() =>
-                        handleClose(() => {
-                            ipcRenderer.send("ytdl:choose-directory");
-                        })
-                    }
+                    onClick={() => handleClose(() => props.setSaveDirectory())}
                 >
                     Choose save directory
                 </MenuItem>
@@ -154,7 +151,7 @@ const JobsTopControl = props => {
                 onClick={() => {
                     props.startAllJobs();
                 }}
-                disabled={!props.generalFormat}
+                disabled={!props.generalFormat || props.jobListLength === 0}
             >
                 Start
             </Button>
@@ -169,12 +166,17 @@ const JobsTopControl = props => {
 const mapStateToProps = state => {
     return {
         generalFormat: state.jobs.generalFormat,
-        progress: state.progress,
         jobListLength: _.size(state.jobs.videos),
     };
 };
 
 export default connect(
     mapStateToProps,
-    { clearJobs, resetAllJobsFormat, setGeneralFormat, startAllJobs }
+    {
+        clearJobs,
+        resetAllJobsFormat,
+        setGeneralFormat,
+        startAllJobs,
+        setSaveDirectory,
+    }
 )(JobsTopControl);

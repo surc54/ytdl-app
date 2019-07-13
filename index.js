@@ -1,7 +1,8 @@
 // import { app, BrowserWindow } from "electron";
-const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog, shell } = require("electron");
 const path = require("path");
 const ytdl = require("ytdl-core");
+const ytlist = require("youtube-playlist");
 const fs = require("fs");
 const filenamify = require("filenamify");
 
@@ -75,6 +76,14 @@ ipcMain.on("video:download", async (event, arg) => {
     );
 });
 
+ipcMain.on("ytdl:open", (e, args) => {
+    if (args.folder) {
+        shell.showItemInFolder(args.path);
+    } else {
+        shell.openItem(args.path);
+    }
+});
+
 ipcMain.on("ytdl:download", (event, arg) => {
     console.log(arg);
     arg.videos.forEach((video, index) => {
@@ -138,20 +147,21 @@ ipcMain.on("ytdl:download", (event, arg) => {
                 : null,
         });
 
-        stream.pipe(
-            fs.createWriteStream(
-                path.join(
-                    arg.saveDirectory,
-                    filenamify(video.title, {
-                        replacement: "_",
-                    }) + `.${container}`
-                )
-            )
+        const filePath = path.join(
+            arg.saveDirectory,
+            filenamify(video.title, {
+                replacement: "_",
+            }) + `.${container}`
         );
+
+        stream.pipe(fs.createWriteStream(filePath));
 
         stream.on("end", () => {
             console.log(`${video.id}: Stream Ended`);
-            event.reply(`ytdl:download-complete:${video.id}`, video.id);
+            event.reply(`ytdl:download-complete:${video.id}`, {
+                id: video.id,
+                path: filePath,
+            });
         });
 
         stream.on("close", () => console.log(`${video.id}: Stream Closed`));
@@ -201,6 +211,48 @@ ipcMain.on("video:info", async (event, arg) => {
         err: err ? err.message : null,
         result: response,
     });
+});
+
+ipcMain.on("playlist:info", async (event, arg) => {
+    console.log(`Playlist Info Request: ${arg}`);
+
+    ytlist(`https://www.youtube.com/playlist?list=${arg}`, "id")
+        .then(res => {
+            const videoIds = res.data.playlist;
+            const promises = [];
+
+            if (videoIds.length === 0) {
+                throw new Error("No videos found in playlist");
+            }
+
+            videoIds.forEach(id => {
+                promises.push(
+                    ytdl.getInfo(`https://www.youtube.com/watch?v=${id}`).then(
+                        vid => ({ status: "ok", id, video: vid }),
+                        err => {
+                            return { status: "fail", id, error: err.message };
+                        }
+                    )
+                );
+            });
+
+            Promise.all(promises)
+                .then(responses => {
+                    event.reply(`playlist:info-received:${arg}`, {
+                        status: "ok",
+                        result: responses,
+                    });
+                })
+                .catch(err => {
+                    throw new Error(`An error occurred: ${err.message}`);
+                });
+        })
+        .catch(err => {
+            event.reply(`playlist:info-received:${arg}`, {
+                status: "fail",
+                err: err.message,
+            });
+        });
 });
 
 ipcMain.on("window:dev-tools", (event, arg) => {

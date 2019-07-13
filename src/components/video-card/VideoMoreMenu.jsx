@@ -1,5 +1,4 @@
 import { Menu, MenuItem } from "@material-ui/core";
-import { pure } from "recompose";
 import React from "react";
 
 const VideoMoreMenu = props => {
@@ -7,10 +6,14 @@ const VideoMoreMenu = props => {
         anchorEl,
         onClose,
         job,
+        added,
         onOpenVideoDetails,
+        startDownload,
+        addToJobList,
         removeVideo,
         disableStartDownload,
         resetFormat,
+        process,
         ...others
     } = props;
 
@@ -31,26 +34,40 @@ const VideoMoreMenu = props => {
             open={!!anchorEl}
             onClose={handleClose}
         >
-            {job && [
+            {job &&
+                process === "waiting" && [
+                    <MenuItem
+                        onClick={() => handleClose(startDownload)}
+                        disabled={disableStartDownload}
+                        key="job_sp_start_download"
+                    >
+                        Start download
+                    </MenuItem>,
+                    <MenuItem
+                        onClick={() => {
+                            handleClose(removeVideo);
+                        }}
+                        key="job_sp_remove_job"
+                    >
+                        Remove from job list
+                    </MenuItem>,
+                ]}
+            {!job && (
                 <MenuItem
-                    onClick={handleClose}
-                    disabled={disableStartDownload}
-                    key="job_sp_start_download"
+                    onClick={() => handleClose(addToJobList)}
+                    disabled={added}
                 >
-                    Start download
-                </MenuItem>,
+                    Add to job list
+                </MenuItem>
+            )}
+            {(!job || (job && process === "waiting")) && (
                 <MenuItem
-                    onClick={() => {
-                        handleClose(removeVideo);
-                    }}
-                    key="job_sp_remove_job"
+                    onClick={() => handleClose(resetFormat)}
+                    disabled={!job && added}
                 >
-                    Remove from Job List
-                </MenuItem>,
-            ]}
-            <MenuItem onClick={() => handleClose(resetFormat)}>
-                Reset video format
-            </MenuItem>
+                    Reset video format
+                </MenuItem>
+            )}
             <MenuItem
                 onClick={() => {
                     handleClose(onOpenVideoDetails);
@@ -62,4 +79,4 @@ const VideoMoreMenu = props => {
     );
 };
 
-export default pure(VideoMoreMenu);
+export default React.memo(VideoMoreMenu);

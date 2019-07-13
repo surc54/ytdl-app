@@ -26,93 +26,11 @@ const useStyles = makeStyles(theme => {
 
 const VideoDetailsDialog = props => {
     const { video, onClose, style = {}, ...other } = props;
+    console.log(`Video Details Dialog ${video.video_id} rendered!`);
     const classes = useStyles();
 
     function handleClose() {
         if (onClose && typeof onClose === "function") onClose();
-    }
-
-    let panelRenderKeys = 0;
-
-    function renderPanels(cat, disableArrayExpand = true) {
-        if (typeof cat === "object") {
-            if (Array.isArray(cat)) {
-                return _.map(cat, (c, i) => {
-                    return (
-                        <ExpansionPanel
-                            key={`${i}_${panelRenderKeys++}`}
-                            expanded={disableArrayExpand || null}
-                            disabled={disableArrayExpand}
-                            TransitionProps={{
-                                unmountOnExit: true,
-                                timeout: 0,
-                            }}
-                        >
-                            <ExpansionPanelSummary
-                                expandIcon={<Icon>expand_more</Icon>}
-                            >
-                                <Typography
-                                    variant="body1"
-                                    style={{ fontWeight: "bold" }}
-                                >
-                                    Array Index: {i}
-                                </Typography>
-                            </ExpansionPanelSummary>
-                            <ExpansionPanelDetails
-                                style={{
-                                    display: "flex",
-                                    flexFlow: "column nowrap",
-                                    justifyContent: "flex-start",
-                                    alignItems: "stretch",
-                                    overflowY: "hidden",
-                                }}
-                            >
-                                {renderPanels(c)}
-                            </ExpansionPanelDetails>
-                        </ExpansionPanel>
-                    );
-                });
-            } else {
-                return _.map(cat, (val, key) => {
-                    const ren = renderPanels(val, _.size(cat[key]) < 3);
-                    return (
-                        <ExpansionPanel
-                            key={`${panelRenderKeys++}_${key}`}
-                            TransitionProps={{
-                                unmountOnExit: true,
-                                timeout: 0,
-                            }}
-                        >
-                            <ExpansionPanelSummary
-                                expandIcon={<Icon>expand_more</Icon>}
-                            >
-                                <Typography
-                                    variant="body1"
-                                    style={{ fontWeight: "bold" }}
-                                >
-                                    {key}
-                                </Typography>
-                            </ExpansionPanelSummary>
-                            <ExpansionPanelDetails
-                                style={{
-                                    display: "flex",
-                                    flexFlow: "column nowrap",
-                                    justifyContent: "flex-start",
-                                    alignItems: "stretch",
-                                    overflowY: "hidden",
-                                }}
-                            >
-                                {ren}
-                            </ExpansionPanelDetails>
-                        </ExpansionPanel>
-                    );
-                });
-            }
-        } else {
-            if (typeof cat === "boolean")
-                return cat ? "TRUE / YES" : "FALSE / NO";
-            return cat;
-        }
     }
 
     return (
@@ -126,6 +44,19 @@ const VideoDetailsDialog = props => {
                 paper: classes.dialogPaper,
             }}
         >
+            <VideoDetailsDialogContent
+                video={video}
+                handleClose={handleClose}
+            />
+        </Dialog>
+    );
+};
+
+const VideoDetailsDialogContent = ({ video, handleClose }) => {
+    console.log(`Video Details Dialog Content ${video.video_id} rendered!`);
+
+    return (
+        <>
             <DialogTitle disableTypography>
                 <Typography noWrap variant="h6">
                     Video Details: {video.title}
@@ -138,30 +69,95 @@ const VideoDetailsDialog = props => {
                 }}
             >
                 {renderPanels(video)}
-                {/* <ExpansionPanel>
-                    <ExpansionPanelSummary
-                        expandIcon={<Icon>expand_more</Icon>}
-                    >
-                        <Typography variant="body1">
-                            Expansion Panel 1
-                        </Typography>
-                    </ExpansionPanelSummary>
-                    <ExpansionPanelDetails>
-                        <Typography>
-                            Lorem ipsum dolor sit amet, consectetur adipiscing
-                            elit. Suspendisse malesuada lacus ex, sit amet
-                            blandit leo lobortis eget.
-                        </Typography>
-                    </ExpansionPanelDetails>
-                </ExpansionPanel> */}
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleClose} autoFocus>
                     Close
                 </Button>
             </DialogActions>
-        </Dialog>
+        </>
     );
 };
+
+let panelRenderKeys = 0;
+function renderPanels(cat, disableArrayExpand = true) {
+    if (typeof cat === "object") {
+        if (Array.isArray(cat)) {
+            return _.map(cat, (c, i) => {
+                return (
+                    <ExpansionPanel
+                        key={`${i}_${panelRenderKeys++}`}
+                        expanded={disableArrayExpand || null}
+                        disabled={disableArrayExpand}
+                        TransitionProps={{
+                            unmountOnExit: true,
+                            timeout: 0,
+                        }}
+                    >
+                        <ExpansionPanelSummary
+                            expandIcon={<Icon>expand_more</Icon>}
+                        >
+                            <Typography
+                                variant="body1"
+                                style={{ fontWeight: "bold" }}
+                            >
+                                Array Index: {i}
+                            </Typography>
+                        </ExpansionPanelSummary>
+                        <ExpansionPanelDetails
+                            style={{
+                                display: "flex",
+                                flexFlow: "column nowrap",
+                                justifyContent: "flex-start",
+                                alignItems: "stretch",
+                                overflowY: "hidden",
+                            }}
+                        >
+                            {renderPanels(c)}
+                        </ExpansionPanelDetails>
+                    </ExpansionPanel>
+                );
+            });
+        } else {
+            return _.map(cat, (val, key) => {
+                const ren = renderPanels(val, _.size(cat[key]) < 3);
+                return (
+                    <ExpansionPanel
+                        key={`${panelRenderKeys++}_${key}`}
+                        TransitionProps={{
+                            unmountOnExit: true,
+                            timeout: 0,
+                        }}
+                    >
+                        <ExpansionPanelSummary
+                            expandIcon={<Icon>expand_more</Icon>}
+                        >
+                            <Typography
+                                variant="body1"
+                                style={{ fontWeight: "bold" }}
+                            >
+                                {key}
+                            </Typography>
+                        </ExpansionPanelSummary>
+                        <ExpansionPanelDetails
+                            style={{
+                                display: "flex",
+                                flexFlow: "column nowrap",
+                                justifyContent: "flex-start",
+                                alignItems: "stretch",
+                                overflowY: "hidden",
+                            }}
+                        >
+                            {ren}
+                        </ExpansionPanelDetails>
+                    </ExpansionPanel>
+                );
+            });
+        }
+    } else {
+        if (typeof cat === "boolean") return cat ? "TRUE / YES" : "FALSE / NO";
+        return cat;
+    }
+}
 
 export default pure(VideoDetailsDialog);

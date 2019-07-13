@@ -9,7 +9,7 @@ import {
 } from "./progressActions";
 const { ipcRenderer } = window.require("electron");
 
-export const addToJobList = (video, lookupRequired = false) => {
+export const addToJobList = (video, lookupRequired = false, format = "") => {
     if (lookupRequired) {
         return (dispatch, getState) => {
             // TODO: Implement video cache idea here
@@ -33,7 +33,7 @@ export const addToJobList = (video, lookupRequired = false) => {
         type: types.ADD_TO_JOB_LIST,
         payload: {
             video,
-            format: "", // FIX THAT
+            format,
         },
     };
 };
@@ -71,6 +71,12 @@ export const resetAllJobsFormat = () => {
 export const clearJobs = () => {
     return {
         type: types.CLEAR_JOBS,
+    };
+};
+
+export const clearCompleteJobs = () => {
+    return {
+        type: types.CLEAR_COMPLETE_JOBS,
     };
 };
 
@@ -242,7 +248,7 @@ const listenForCompletion = (videoId, dispatch, getState) => {
     ipcRenderer.once(`ytdl:download-complete:${videoId}`, (e, args) => {
         dispatch({
             type: types.DOWNLOAD_COMPLETE,
-            payload: videoId,
+            payload: args,
         });
 
         ipcRenderer.removeAllListeners(`ytdl:download-progress:${videoId}`);

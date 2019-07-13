@@ -1,22 +1,29 @@
 const { ipcRenderer } = window.require("electron");
 
-const lookup = videoId => {
+const lookup = (videoId, playlist = false) => {
     const videoIdTester = new RegExp(/([A-Za-z0-9_-]+)/i);
 
     if (!videoIdTester.test(videoId)) {
-        throw new Error("Video ID did not match pattern (lookup)");
+        throw new Error(
+            `${
+                playlist ? "Playlist" : "Video"
+            } ID did not match pattern (lookup)`
+        );
     }
 
     return new Promise((resolve, reject) => {
-        ipcRenderer.send("video:info", videoId);
+        ipcRenderer.send(`${playlist ? "playlist" : "video"}:info`, videoId);
 
-        ipcRenderer.once(`video:info-received:${videoId}`, (event, data) => {
-            if (data.status !== "ok") {
-                reject(data.err);
-            } else {
-                resolve(data.result);
+        ipcRenderer.once(
+            `${playlist ? "playlist" : "video"}:info-received:${videoId}`,
+            (event, data) => {
+                if (data.status !== "ok") {
+                    reject(data.err);
+                } else {
+                    resolve(data.result);
+                }
             }
-        });
+        );
     });
 };
 
