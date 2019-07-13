@@ -21,9 +21,10 @@ import { connect } from "react-redux";
 import { setJobFormat, clearCompleteJobs } from "../../actions";
 import VideoCard from "../video-card/VideoCard";
 import "./JobsList.scss";
+import { textAlign } from "@material-ui/system";
 
 const JobsList = props => {
-    const [currentTab, setCurrentTab] = React.useState("pending");
+    const [currentTab, setCurrentTab] = React.useState("waiting");
 
     const onFormatChange = (e, id) => {
         props.setJobFormat(id, e.target.value);
@@ -47,49 +48,34 @@ const JobsList = props => {
         job => job.process === "waiting"
     );
 
-    const showExpansionPanel = (
-        title,
-        jobList,
-        expPanelProps = {},
-        actions = null
-    ) => {
-        return (
-            <ExpansionPanel
-                {...expPanelProps}
-                style={{
-                    ...(expPanelProps.style || {}),
-                    marginRight: 15,
-                    marginLeft: isXS ? 15 : 0,
-                }}
-                TransitionProps={{
-                    unmountOnExit: true,
-                }}
-            >
-                <ExpansionPanelSummary expandIcon={<Icon>expand_more</Icon>}>
-                    {title}
-                </ExpansionPanelSummary>
-                <ExpansionPanelDetails className="in-progress-items">
-                    {jobList.map(job => (
-                        <VideoCard
-                            style={{
-                                marginRight: 15,
-                                marginLeft: isXS ? 15 : 0,
-                            }}
-                            job={job}
-                            video={job.video}
-                            format={job.format || ""}
-                            key={job.video.video_id}
-                            onFormatChange={e => {
-                                onFormatChange(e, job.video.video_id);
-                            }}
-                        />
-                    ))}
-                </ExpansionPanelDetails>
-                {actions && (
-                    <ExpansionPanelActions>{actions}</ExpansionPanelActions>
-                )}
-            </ExpansionPanel>
-        );
+    const mapVideoCards = source => {
+        if (_.size(source) === 0) {
+            return (
+                <div style={{ textAlign: "center", marginTop: 20 }}>
+                    <Icon fontSize="large">layers_clear</Icon>
+                    <Typography align="center" variant="subtitle1">
+                        There's nothing here.
+                    </Typography>
+                </div>
+            );
+        }
+        return _.map(source, job => {
+            return (
+                <VideoCard
+                    style={{
+                        marginRight: 15,
+                        marginLeft: isXS ? 15 : 0,
+                    }}
+                    job={job}
+                    video={job.video}
+                    format={job.format || ""}
+                    key={job.video.video_id}
+                    onFormatChange={e => {
+                        onFormatChange(e, job.video.video_id);
+                    }}
+                />
+            );
+        });
     };
 
     return [
@@ -100,14 +86,28 @@ const JobsList = props => {
         >
             <Tab
                 label={
-                    <Badge badgeContent={10} color="secondary">
+                    <Badge badgeContent={_.size(waiting)} color="secondary">
                         Pending
                     </Badge>
                 }
                 value={"waiting"}
             />
-            <Tab label="In Progress" value={"in-progress"} />
-            <Tab label="Complete" value={"done"} />
+            <Tab
+                label={
+                    <Badge badgeContent={_.size(inProgress)} color="secondary">
+                        In Progress
+                    </Badge>
+                }
+                value={"in-progress"}
+            />
+            <Tab
+                label={
+                    <Badge badgeContent={_.size(done)} color="secondary">
+                        Complete
+                    </Badge>
+                }
+                value={"done"}
+            />
         </Tabs>,
         <div
             className="scroll-bar"
@@ -117,68 +117,10 @@ const JobsList = props => {
             }}
         >
             {currentTab === "waiting" && <FormatSelectorInfo isXS={isXS} />}
-            {done.length !== 0 &&
-                showExpansionPanel(
-                    `${done.length} item${
-                        done.length !== 1 ? "s" : ""
-                    } complete`,
-                    done,
-                    {},
-                    <Button onClick={() => props.clearCompleteJobs()}>
-                        Clear All
-                    </Button>
-                )}
-            {inProgress.length !== 0 &&
-                showExpansionPanel(
-                    `${inProgress.length} item${
-                        inProgress.length !== 1 ? "s" : ""
-                    } in progress`,
-                    inProgress,
-                    {
-                        style: {
-                            marginBottom: 10,
-                        },
-                        defaultExpanded: false,
-                    }
-                )}
-            {(inProgress.length !== 0 || done.length !== 0) &&
-                (waiting.length !== 0 && (
-                    <>
-                        <Divider
-                            style={{
-                                marginTop: 10,
-                                marginRight: 15,
-                                marginLeft: isXS ? 15 : 0,
-                            }}
-                        />
-                        <Typography
-                            align="center"
-                            style={{ marginTop: 10 }}
-                            color="textSecondary"
-                            variant="subtitle1"
-                            gutterBottom
-                        >
-                            The following items are waiting to start
-                        </Typography>
-                    </>
-                ))}
-            {_.map(waiting, job => {
-                return (
-                    <VideoCard
-                        style={{
-                            marginRight: 15,
-                            marginLeft: isXS ? 15 : 0,
-                        }}
-                        job={job}
-                        video={job.video}
-                        format={job.format || ""}
-                        key={job.video.video_id}
-                        onFormatChange={e => {
-                            onFormatChange(e, job.video.video_id);
-                        }}
-                    />
-                );
-            })}
+            {currentTab === "waiting" && mapVideoCards(waiting)}
+            {currentTab === "in-progress" && mapVideoCards(inProgress)}
+            {currentTab === "done" && mapVideoCards(done)}
+
             {props.progress.statusBar && (
                 <div style={{ marginBottom: 70 }}></div>
             )}
