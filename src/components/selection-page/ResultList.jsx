@@ -8,6 +8,8 @@ import {
 import { useTheme } from "@material-ui/styles";
 import React from "react";
 import { connect } from "react-redux";
+import { VariableSizeList as List } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
 import { setResultFormat } from "../../actions";
 import VideoCard from "../video-card/VideoCard";
 import {} from "react-window";
@@ -22,27 +24,72 @@ const ResultList = props => {
     const theme = useTheme();
     const isXS = useMediaQuery(theme.breakpoints.only("xs"));
 
-    const renderContent = props => {
-        const renderList = [];
-
-        if (type === "loading") {
-            return (
-                <div
-                    {...props}
-                    style={{
-                        ...props.style,
-                        textAlign: "center",
-                        marginTop: 20,
-                    }}
-                >
-                    <CircularProgress />
-                </div>
-            );
+    const getItemSize = (index, type) => {
+        if (index === 0) {
+            return 300;
+        } else {
+            return 136;
         }
 
-        if (type === "error" || err) {
-            renderList.push(<ResultsErrorMessage error={err} {...props} />);
-        } else if (type === "") {
+        if (type === "loading" && index === 0) {
+            return 100;
+        }
+
+        if ((type === "error" || err) && index === 0) {
+            return 300;
+        } else if (type === "" && index === 0) {
+            return 20;
+        } else {
+            return 136;
+        }
+    };
+
+    const getItemCount = () => {
+        if (type === "loading") {
+            return 1;
+        }
+
+        if (type === "") {
+            return 1;
+        }
+
+        return videos.length + 1;
+    };
+
+    const itemCount = getItemCount();
+
+    const renderContent = ({ index, style }) => {
+        const props = {
+            style: {
+                ...style,
+                width: `calc(${style.width} - 15px)`,
+                left: style.left + (isXS ? 15 : 0),
+                height: style.height - 10,
+            },
+        };
+
+        if (type === "loading") {
+            if (index === 0) {
+                return (
+                    <div
+                        {...props}
+                        style={{
+                            ...props.style,
+                            textAlign: "center",
+                            marginTop: 20,
+                        }}
+                    >
+                        <CircularProgress />
+                    </div>
+                );
+            } else {
+                return null;
+            }
+        }
+
+        if ((type === "error" || err) && index === 0) {
+            return <ResultsErrorMessage error={err} {...props} />;
+        } else if (type === "" && index === 0) {
             return (
                 <Typography variant="subtitle1" {...props}>
                     Search above to get started
@@ -50,56 +97,73 @@ const ResultList = props => {
             );
         }
 
+        const beginIndexOffset = 1;
+
         if (videos) {
-            if (renderList.length !== 0) {
-                renderList.push(
-                    <Divider
-                        style={{
-                            marginRight: 15,
-                            marginLeft: isXS ? 15 : 0,
-                            marginTop: 10,
-                            marginBottom: 10,
-                        }}
+            if (index === 0) {
+                console.log("%cYEET", "font-size: 20px");
+                return <div style={{ ...props.style, height: 0 }}></div>;
+            }
+
+            // if (renderList.length !== 0) {
+            //     renderList.push(
+            //         <Divider
+            //             style={{
+            //                 ...style,
+            //                 marginRight: 15,
+            //                 marginLeft: isXS ? 15 : 0,
+            //                 marginTop: 10,
+            //                 marginBottom: 10,
+            //             }}
+            //         />
+            //     );
+            // }
+
+            const v = videos[index - beginIndexOffset];
+
+            if (v) {
+                return (
+                    <VideoCard
+                        video={v.video}
+                        format={v.format}
+                        onFormatChange={e =>
+                            onFormatChange(e, v.video.video_id)
+                        }
+                        key={v.video_id}
+                        {...props}
+                        style={{ ...props.style, marginBottom: 0 }}
                     />
                 );
             }
-
-            renderList.push(
-                videos.map(v => {
-                    return (
-                        <VideoCard
-                            video={v.video}
-                            format={v.format}
-                            onFormatChange={e =>
-                                onFormatChange(e, v.video.video_id)
-                            }
-                            key={v.video_id}
-                            {...props}
-                        />
-                    );
-                })
-            );
         }
 
-        return renderList;
+        return null;
     };
 
     const heightCutoff = props.adjustForControls ? 250 : 215;
 
     return (
         <div
-            className="scroll-bar"
             style={{
-                overflowY: "auto",
+                overflowY: "hidden",
                 height: `calc(100vh - ${heightCutoff}px)`,
             }}
         >
-            {renderContent({
-                style: {
-                    marginRight: 15,
-                    marginLeft: isXS ? 15 : 0,
-                },
-            })}
+            <AutoSizer>
+                {({ height, width }) => {
+                    return (
+                        <List
+                            className="scroll-bar"
+                            height={height}
+                            width={width}
+                            itemSize={ind => getItemSize(ind, type)}
+                            itemCount={itemCount}
+                        >
+                            {renderContent}
+                        </List>
+                    );
+                }}
+            </AutoSizer>
 
             {props.progressStatusBar && (
                 <div style={{ marginBottom: 70 }}></div>
@@ -110,8 +174,6 @@ const ResultList = props => {
 
 const ResultsErrorMessage = props => {
     const theme = useTheme();
-
-    console.log(theme);
 
     const styles = {
         paper: {

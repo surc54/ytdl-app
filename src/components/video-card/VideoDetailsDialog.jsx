@@ -26,7 +26,7 @@ const useStyles = makeStyles(theme => {
 
 const VideoDetailsDialog = props => {
     const { video, onClose, style = {}, ...other } = props;
-    console.log(`Video Details Dialog ${video.video_id} rendered!`);
+    // console.log(`Video Details Dialog ${video.video_id} rendered!`);
     const classes = useStyles();
 
     function handleClose() {
@@ -53,7 +53,7 @@ const VideoDetailsDialog = props => {
 };
 
 const VideoDetailsDialogContent = ({ video, handleClose }) => {
-    console.log(`Video Details Dialog Content ${video.video_id} rendered!`);
+    // console.log(`Video Details Dialog Content ${video.video_id} rendered!`);
 
     return (
         <>

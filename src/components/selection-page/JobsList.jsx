@@ -1,37 +1,39 @@
 import {
-    useMediaQuery,
-    ExpansionPanel,
-    ExpansionPanelDetails,
-    Icon,
-    ExpansionPanelSummary,
-    Divider,
-    Typography,
-    ExpansionPanelActions,
-    Paper,
-    Button,
-    Tabs,
-    Tab,
     Badge,
+    Icon,
+    Paper,
+    Tab,
+    Tabs,
+    Typography,
+    useMediaQuery,
 } from "@material-ui/core";
-import { useTheme } from "@material-ui/styles";
+import { makeStyles, useTheme } from "@material-ui/styles";
 import _ from "lodash";
 import React from "react";
-import { pure } from "recompose";
 import { connect } from "react-redux";
-import { setJobFormat, clearCompleteJobs } from "../../actions";
+import { pure } from "recompose";
+import { clearCompleteJobs, setJobFormat } from "../../actions";
 import VideoCard from "../video-card/VideoCard";
 import "./JobsList.scss";
-import { textAlign } from "@material-ui/system";
+
+const useStyles = makeStyles(theme => {
+    return {
+        badgeSpacing: {
+            paddingRight: theme.spacing(1.5),
+        },
+    };
+});
 
 const JobsList = props => {
     const [currentTab, setCurrentTab] = React.useState("waiting");
+    const classes = useStyles();
 
     const onFormatChange = (e, id) => {
         props.setJobFormat(id, e.target.value);
     };
 
     const theme = useTheme();
-    // console.log("THEME: ", theme);
+
     const isXS = useMediaQuery(theme.breakpoints.only("xs"));
 
     const heightCutoff = props.adjustForControls ? 295 : 260;
@@ -86,7 +88,11 @@ const JobsList = props => {
         >
             <Tab
                 label={
-                    <Badge badgeContent={_.size(waiting)} color="secondary">
+                    <Badge
+                        badgeContent={_.size(waiting)}
+                        color="secondary"
+                        className={classes.badgeSpacing}
+                    >
                         Pending
                     </Badge>
                 }
@@ -94,15 +100,24 @@ const JobsList = props => {
             />
             <Tab
                 label={
-                    <Badge badgeContent={_.size(inProgress)} color="secondary">
+                    <Badge
+                        badgeContent={_.size(inProgress)}
+                        color="secondary"
+                        className={classes.badgeSpacing}
+                    >
                         In Progress
                     </Badge>
                 }
+                wrapped
                 value={"in-progress"}
             />
             <Tab
                 label={
-                    <Badge badgeContent={_.size(done)} color="secondary">
+                    <Badge
+                        badgeContent={_.size(done)}
+                        color="secondary"
+                        className={classes.badgeSpacing}
+                    >
                         Complete
                     </Badge>
                 }

@@ -88,7 +88,7 @@ class VideoCard extends React.Component {
     resetFormat = () => this.props.setJobFormat(this.props.video.video_id, "");
 
     render() {
-        console.log(`Video Card ${this.props.video.video_id} rendered!`);
+        // console.log(`Video Card ${this.props.video.video_id} rendered!`);
         const givenStyle = this.props.style || {};
 
         return (

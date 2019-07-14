@@ -38,10 +38,8 @@ const useStyles = makeStyles(theme => {
 const SelectionPage = props => {
     const classes = useStyles();
     const [currentTab, setCurrentTab] = useState("results");
-    console.log(`SelectionPage rendered!`);
 
     const onTabChange = (e, val) => {
-        console.log(e);
         setCurrentTab(val);
     };
 
