@@ -41,6 +41,10 @@ class VideoCard extends React.Component {
             return true;
         }
 
+        if (nextProps.disableBackground !== this.props.disableBackground) {
+            return true;
+        }
+
         return false;
     }
 
@@ -88,17 +92,22 @@ class VideoCard extends React.Component {
     resetFormat = () => this.props.setJobFormat(this.props.video.video_id, "");
 
     render() {
-        // console.log(`Video Card ${this.props.video.video_id} rendered!`);
         const givenStyle = this.props.style || {};
+
+        let backgroundImageStyle = {};
+
+        if (!this.props.disableBackground) {
+            backgroundImageStyle.backgroundImage = `url("https://img.youtube.com/vi/${this.props.video.video_id}/default.jpg")`;
+        }
 
         return (
             <Paper
                 elevation={4}
                 className="video-card"
                 style={{
-                    ...givenStyle,
-                    backgroundImage: `url("https://img.youtube.com/vi/${this.props.video.video_id}/default.jpg")`,
+                    ...backgroundImageStyle,
                     marginBottom: 10,
+                    ...givenStyle,
                 }}
             >
                 <div className="wrapper">

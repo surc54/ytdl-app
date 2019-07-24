@@ -21,10 +21,14 @@ export const addToJobList = (video, lookupRequired = false, format = "") => {
                 })
                 .catch(err => {
                     // TODO: ERROR MANAGEMENT??
-                    console.error(err);
-                    throw new Error(
-                        "You didn't catch this error lol (" + err.message + ")"
-                    );
+                    dispatch({
+                        type: types.ADD_JOB_WITH_LOOKUP_ERROR,
+                        payload: err,
+                    });
+                    // console.error(err);
+                    // throw new Error(
+                    //     "You didn't catch this error lol (" + err.message + ")"
+                    // );
                 });
         };
     }
@@ -165,7 +169,7 @@ export const startOneJob = videoId => {
 
         dispatch({
             type: types.DOWNLOAD_START,
-            payload: videoId,
+            payload: [videoId],
         });
 
         dispatch(updateProgress());
@@ -189,6 +193,7 @@ export const startAllJobs = () => {
         const state = getState();
         const jobs = state.jobs.videos;
         const videos = [];
+        const ids = [];
 
         if (!state.jobs.saveDirectory) {
             dispatch(
@@ -217,13 +222,15 @@ export const startAllJobs = () => {
                 title: job.video.title,
             });
 
-            dispatch({
-                type: types.DOWNLOAD_START,
-                payload: id,
-            });
+            ids.push(id);
 
             listenForCompletion(id, dispatch, getState);
             listenForProgress(id, dispatch, getState);
+        });
+
+        dispatch({
+            type: types.DOWNLOAD_START,
+            payload: ids,
         });
 
         ipcRenderer.send("ytdl:download", {
@@ -241,6 +248,16 @@ export const startAllJobs = () => {
         dispatch(updateProgress());
 
         // SEND IPCRENDERER REQUEST
+    };
+};
+
+export const setDownloadError = (videoId, error) => {
+    return {
+        type: types.DOWNLOAD_ERROR,
+        payload: {
+            id: videoId,
+            err: error,
+        },
     };
 };
 
@@ -270,13 +287,27 @@ const listenForCompletion = (videoId, dispatch, getState) => {
     });
 };
 
-const listenForProgress = (videoId, dispatch, getState) => {
-    ipcRenderer.on(`ytdl:download-progress:${videoId}`, (e, args) => {
-        dispatch({
-            type: types.DOWNLOAD_PROGRESS,
-            payload: args,
-        });
+let progressListener = null;
 
-        dispatch(updateProgress());
-    });
+const listenForProgress = (videoId, dispatch, getState) => {
+    if (!progressListener) {
+        progressListener =
+            ipcRenderer.on(`ytdl:bulk-download-progress`, (e, args) => {
+                dispatch({
+                    type: types.DOWNLOAD_BULK_PROGRESS,
+                    payload: args,
+                });
+
+                dispatch(updateProgress());
+            }) || true;
+    }
+
+    // ipcRenderer.on(`ytdl:download-progress:${videoId}`, (e, args) => {
+    //     dispatch({
+    //         type: types.DOWNLOAD_PROGRESS,
+    //         payload: args,
+    //     });
+
+    //     dispatch(updateProgress());
+    // });
 };

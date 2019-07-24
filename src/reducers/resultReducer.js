@@ -5,6 +5,8 @@ const INITIAL_STATE = {
     type: "",
     videos: [],
     err: null,
+    sameErrCounter: 0,
+    embeddedPlaylistDetails: null,
 };
 
 export default (state = INITIAL_STATE, action) => {
@@ -51,10 +53,15 @@ export default (state = INITIAL_STATE, action) => {
             };
         }
         case types.GET_SINGLE_VIDEO_INFO_ERR:
+            let sameErrCounter = 0;
+            if (action.payload === state.err) {
+                sameErrCounter = state.sameErrCounter + 1;
+            }
             return {
                 ...state,
                 type: "error",
                 err: action.payload,
+                sameErrCounter,
             };
         case types.SET_RESULT_FORMAT:
             const index = _.findIndex(
@@ -75,6 +82,18 @@ export default (state = INITIAL_STATE, action) => {
                 ...state,
                 videos,
             };
+        case types.SET_EMBEDDED_PLAYLIST_DETAILS:
+            return {
+                ...state,
+                embeddedPlaylistDetails: action.payload,
+            };
+
+        case types.CLEAR_EMBEDDED_PLAYLIST_DETAILS:
+            return {
+                ...state,
+                embeddedPlaylistDetails: null,
+            };
+
         default:
             return state;
     }

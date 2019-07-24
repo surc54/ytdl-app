@@ -1,21 +1,19 @@
 import {
-    useMediaQuery,
     CircularProgress,
-    Divider,
     Paper,
     Typography,
+    useMediaQuery,
 } from "@material-ui/core";
 import { useTheme } from "@material-ui/styles";
 import React from "react";
 import { connect } from "react-redux";
-import { VariableSizeList as List } from "react-window";
-import AutoSizer from "react-virtualized-auto-sizer";
+import { Virtuoso } from "react-virtuoso";
 import { setResultFormat } from "../../actions";
 import VideoCard from "../video-card/VideoCard";
-import {} from "react-window";
 
 const ResultList = props => {
     const { type, videos, err } = props.results;
+    const virtualList = React.createRef();
 
     const onFormatChange = (e, id) => {
         props.setResultFormat(id, e.target.value);
@@ -24,19 +22,30 @@ const ResultList = props => {
     const theme = useTheme();
     const isXS = useMediaQuery(theme.breakpoints.only("xs"));
 
-    const getItemSize = (index, type) => {
-        if (index === 0) {
-            return 300;
-        } else {
-            return 136;
+    React.useEffect(() => {
+        if (virtualList.current) {
+            virtualList.current.recomputeRowHeights(0);
         }
+        // eslint-disable-next-line
+    }, [type, virtualList.current]);
 
+    React.useEffect(() => {
+        if (videos && virtualList.current) {
+            virtualList.current.measureAllRows();
+        }
+        // eslint-disable-next-line
+    }, [videos, virtualList, virtualList.current]);
+
+    const [isScrolling, setIsScrolling] = React.useState(false);
+
+    // eslint-disable-next-line
+    const getItemSize = ({ index }, type) => {
         if (type === "loading" && index === 0) {
             return 100;
         }
 
         if ((type === "error" || err) && index === 0) {
-            return 300;
+            return 310;
         } else if (type === "" && index === 0) {
             return 20;
         } else {
@@ -53,25 +62,39 @@ const ResultList = props => {
             return 1;
         }
 
-        return videos.length + 1;
+        return videos.length + (type === "error" || err ? 1 : 0);
     };
 
     const itemCount = getItemCount();
 
-    const renderContent = ({ index, style }) => {
+    const renderContent = (
+        index,
+        {
+            style = {},
+            /*isScrolling = false,*/ isVisible = false,
+            key = null,
+        } = {}
+    ) => {
         const props = {
             style: {
                 ...style,
-                width: `calc(${style.width} - 15px)`,
-                left: style.left + (isXS ? 15 : 0),
-                height: style.height - 10,
+                width: `calc(100% - 15px)`,
+                marginLeft: isXS ? 15 : 0,
+                marginBottom: 10,
             },
+            // style: {
+            //     ...style,
+            //     width: `calc(${style.width} - 15px)`,
+            //     left: style.left + (isXS ? 15 : 0),
+            //     height: style.height - 10,
+            // },
         };
 
         if (type === "loading") {
             if (index === 0) {
                 return (
                     <div
+                        key={key}
                         {...props}
                         style={{
                             ...props.style,
@@ -88,37 +111,18 @@ const ResultList = props => {
         }
 
         if ((type === "error" || err) && index === 0) {
-            return <ResultsErrorMessage error={err} {...props} />;
+            return <ResultsErrorMessage key={key} error={err} {...props} />;
         } else if (type === "" && index === 0) {
             return (
-                <Typography variant="subtitle1" {...props}>
+                <Typography variant="subtitle1" key={key} {...props}>
                     Search above to get started
                 </Typography>
             );
         }
 
-        const beginIndexOffset = 1;
+        const beginIndexOffset = type === "error" || err ? 1 : 0;
 
         if (videos) {
-            if (index === 0) {
-                console.log("%cYEET", "font-size: 20px");
-                return <div style={{ ...props.style, height: 0 }}></div>;
-            }
-
-            // if (renderList.length !== 0) {
-            //     renderList.push(
-            //         <Divider
-            //             style={{
-            //                 ...style,
-            //                 marginRight: 15,
-            //                 marginLeft: isXS ? 15 : 0,
-            //                 marginTop: 10,
-            //                 marginBottom: 10,
-            //             }}
-            //         />
-            //     );
-            // }
-
             const v = videos[index - beginIndexOffset];
 
             if (v) {
@@ -129,9 +133,10 @@ const ResultList = props => {
                         onFormatChange={e =>
                             onFormatChange(e, v.video.video_id)
                         }
-                        key={v.video_id}
+                        disableBackground={isScrolling}
+                        key={`r_${v.video.video_id}`}
                         {...props}
-                        style={{ ...props.style, marginBottom: 0 }}
+                        style={{ ...props.style }}
                     />
                 );
             }
@@ -144,27 +149,44 @@ const ResultList = props => {
 
     return (
         <div
+            className="result_list_root"
             style={{
                 overflowY: "hidden",
                 height: `calc(100vh - ${heightCutoff}px)`,
             }}
         >
-            <AutoSizer>
+            {/* <AutoSizer>
                 {({ height, width }) => {
                     return (
                         <List
+                            ref={virtualList}
+                            type={type}
                             className="scroll-bar"
                             height={height}
                             width={width}
-                            itemSize={ind => getItemSize(ind, type)}
-                            itemCount={itemCount}
-                        >
-                            {renderContent}
-                        </List>
+                            rowHeight={ind => getItemSize(ind, type)}
+                            rowCount={itemCount}
+                            rowRenderer={renderContent}
+                        ></List>
                     );
                 }}
-            </AutoSizer>
+            </AutoSizer> */}
 
+            <Virtuoso
+                className="scroll-bar"
+                style={{
+                    width: "100%",
+                    height: "100%",
+                    transform: "translateZ(0)",
+                    willChange: "transform",
+                }}
+                totalCount={itemCount}
+                item={renderContent}
+                scrollingStateChange={isScrolling =>
+                    setIsScrolling(isScrolling)
+                }
+                overscan={5}
+            />
             {props.progressStatusBar && (
                 <div style={{ marginBottom: 70 }}></div>
             )}
@@ -180,7 +202,7 @@ const ResultsErrorMessage = props => {
             padding: "10px",
             background: theme.palette.error.dark,
             color: theme.palette.error.contrastText,
-            marginBottom: 10,
+            // marginBottom: 10,
         },
         pre: {
             marginTop: 10,
@@ -194,7 +216,7 @@ const ResultsErrorMessage = props => {
     return (
         <Paper style={{ ...styles.paper, ...props.style }}>
             <Typography variant="h6">An error occurred</Typography>
-            <Typography variant="body1">
+            <Typography variant="body1" component="div">
                 The following error(s) occurred while attempting to search:
                 <div
                     className="scroll-bar"
@@ -204,22 +226,26 @@ const ResultsErrorMessage = props => {
                         backgroundColor: "rgba(0, 0, 0, 0.1)",
                     }}
                 >
-                    <Typography style={styles.pre}>
+                    <Typography style={styles.pre} component="div">
                         {(() => {
                             if (Array.isArray(props.error)) {
                                 return [
-                                    <>
+                                    <div key="results_error_count">
                                         <b>Error count: {props.error.length}</b>
                                         <br />
                                         <br />
-                                    </>,
-                                    ...props.error.map(err => (
-                                        <>
-                                            {err}
-                                            <br />
-                                            <br />
-                                        </>
-                                    )),
+                                    </div>,
+                                    ...props.error.map((err, i) => {
+                                        let key =
+                                            err.split(":")[0] || `ind_${i}`;
+                                        return (
+                                            <div key={`results_error_${key}`}>
+                                                {err}
+                                                <br />
+                                                <br />
+                                            </div>
+                                        );
+                                    }),
                                 ];
                             } else {
                                 return props.error || "Unknown error";

@@ -5,6 +5,7 @@ const INITIAL_STATE = {
     generalFormat: "hq-mp4",
     saveDirectory: null,
     videos: {},
+    errors: [],
 };
 
 export default (state = INITIAL_STATE, action) => {
@@ -93,18 +94,22 @@ export default (state = INITIAL_STATE, action) => {
                 ...state,
                 saveDirectory: action.payload,
             };
-        case types.DOWNLOAD_START:
-            return {
-                ...state,
-                videos: {
-                    ...state.videos,
-                    [action.payload]: {
-                        ...state.videos[action.payload],
+        case types.DOWNLOAD_START: {
+            const ids = action.payload;
+            const videos = { ...state.videos };
+            ids.forEach(
+                id =>
+                    (videos[id] = {
+                        ...state.videos[id],
                         process: "downloading",
                         percent: 0,
-                    },
-                },
+                    })
+            );
+            return {
+                ...state,
+                videos,
             };
+        }
         case types.DOWNLOAD_COMPLETE:
             return {
                 ...state,
@@ -118,6 +123,36 @@ export default (state = INITIAL_STATE, action) => {
                     },
                 },
             };
+        case types.DOWNLOAD_ERROR: {
+            const { id, err } = action.payload;
+            return {
+                ...state,
+                videos: {
+                    ...state.videos,
+                    [id]: {
+                        ...state.videos[id],
+                        process: "done",
+                        percent: 100,
+                        err,
+                    },
+                },
+            };
+        }
+        case types.DOWNLOAD_BULK_PROGRESS:
+            const additions = {};
+            _.forEach(action.payload, (val, key) => {
+                additions[key] = {
+                    ...state.videos[key],
+                    percent: val,
+                };
+            });
+            return {
+                ...state,
+                videos: {
+                    ...state.videos,
+                    ...additions,
+                },
+            };
         case types.DOWNLOAD_PROGRESS:
             return {
                 ...state,
@@ -128,6 +163,13 @@ export default (state = INITIAL_STATE, action) => {
                         percent: action.payload.progress,
                     },
                 },
+            };
+        case types.ADD_JOB_WITH_LOOKUP_ERROR:
+            const err =
+                (action.payload && action.payload.message) || action.payload;
+            return {
+                ...state,
+                errors: [...state.errors, err],
             };
         default:
             return state;

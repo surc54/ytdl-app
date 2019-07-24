@@ -18,6 +18,7 @@ import SearchBar from "../search-bar/SearchBar";
 import JobsList from "./JobsList";
 import JobsTopControl from "./JobsTopControl";
 import ResultList from "./ResultList";
+// import ResultList from "./ResultListv2";
 import "./SelectionPage.scss";
 import DirectoryModal from "./DirectoryModal";
 import ResultsTopControl from "./ResultsTopControl";
@@ -43,14 +44,15 @@ const SelectionPage = props => {
         setCurrentTab(val);
     };
 
-    useEffect(() => {
-        props.search("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
-        props.addToJobList("tV8P6T5tTYs", true);
-        props.addToJobList("Bkttq3e5DcY", true);
-        props.addToJobList("JdTBIHX-r0M", true);
-        props.addToJobList("g1Gvi6q-OPM", true);
-        // props.addToJobList("5zqjusBY8_c", true);
-    }, []);
+    // useEffect(() => {
+    //     props.search("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+    //     props.addToJobList("tV8P6T5tTYs", true);
+    //     props.addToJobList("Bkttq3e5DcY", true);
+    //     props.addToJobList("JdTBIHX-r0M", true);
+    //     props.addToJobList("g1Gvi6q-OPM", true);
+    //     // props.addToJobList("5zqjusBY8_c", true);
+    //     // eslint-disable-next-line
+    // }, []);
     return (
         <Container style={{ paddingTop: 20 }}>
             <SearchBar inline style={{ marginBottom: 20 }} />

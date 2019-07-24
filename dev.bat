@@ -1,2 +1,2 @@
 start cmd /c "yarn start"
-start cmd /c "yarn run electron"
+start cmd /c nodemon -w index.js -x "npx electron ."

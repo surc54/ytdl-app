@@ -5,14 +5,19 @@ import { addAllResultsToJobs, clearResults } from "../../actions";
 import "./JobsTopControl.scss";
 
 const ResultsTopControl = props => {
-    const { resultsLength, ...others } = props;
+    const {
+        resultsLength,
+        addAllResultsToJobs,
+        clearResults,
+        ...others
+    } = props;
 
     return (
         <div className="jobs-top-control" {...others}>
             <Button
                 variant="outlined"
                 onClick={() => {
-                    props.addAllResultsToJobs();
+                    addAllResultsToJobs();
                 }}
                 disabled={resultsLength === 0}
             >
@@ -24,7 +29,7 @@ const ResultsTopControl = props => {
                         size="small"
                         disabled={resultsLength === 0}
                         onClick={() => {
-                            props.clearResults();
+                            clearResults();
                         }}
                     >
                         <Icon>delete</Icon>

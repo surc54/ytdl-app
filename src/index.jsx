@@ -7,7 +7,7 @@ import reduxThunk from "redux-thunk";
 import App from "./components/App";
 import reducers from "./reducers/index";
 import "typeface-roboto/index.css";
-// import "material-design-icons/iconfont/material-icons.css";
+import "material-design-icons/iconfont/material-icons.css";
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 const store = createStore(

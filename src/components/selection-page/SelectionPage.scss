@@ -5,3 +5,9 @@
     align-items: center;
     padding-bottom: 5px;
 }
+
+.result_list_root {
+    div[role="grid"] {
+        outline: none;
+    }
+}

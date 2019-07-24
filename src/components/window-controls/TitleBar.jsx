@@ -30,9 +30,9 @@ class TitleBar extends React.Component {
                 </DraggableArea>
                 <div className="buttons">
                     {/* &#xEC7A; */}
-                    <WindowButton onClick={this.onDevToolsClick}>
+                    {/*<WindowButton onClick={this.onDevToolsClick}>
                         <Icon>developer_board</Icon>
-                    </WindowButton>
+                    </WindowButton>*/}
                     <WindowButton
                         control="minimize"
                         onClick={this.onMinimizeClick}

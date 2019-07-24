@@ -19,9 +19,7 @@ const InlineSearchBar = props => {
                     className="inline-search-button"
                     onClick={props.pasteFromClipboard}
                 >
-                    <Icon className="material-icons-outlined">
-                        file_copy_outline
-                    </Icon>
+                    <Icon>content_copy</Icon>
                 </IconButton>
             </Tooltip>
             <Tooltip title="Search">

@@ -6,6 +6,7 @@ import { search, setResultsError } from "../../actions";
 import FullSearchBar from "./FullSearchBar";
 import InlineSearchBar from "./InlineSearchBar";
 import "./SearchBar.scss";
+import PlaylistAvailableDialog from "./PlaylistAvailableDialog";
 
 const { clipboard } = window.require("electron");
 
@@ -122,6 +123,7 @@ class SearchBar extends React.PureComponent {
                     })()}
                 </form>
                 {this.renderSnackbar()}
+                <PlaylistAvailableDialog />
             </div>
         );
     }
@@ -141,10 +143,10 @@ const validate = values => {
 
 const wrappedForm = reduxForm({
     form: "search",
-    initialValues: {
-        search:
-            "https://www.youtube.com/playlist?list=PLKEKtyEI8MqwguTB3a3mV7vuA-FGQCmUG",
-    },
+    // initialValues: {
+    //     search:
+    //         "https://www.youtube.com/playlist?list=PLKEKtyEI8MqwguTB3a3mV7vuA-FGQCmUG",
+    // },
     validate,
     destroyOnUnmount: false,
 })(SearchBar);

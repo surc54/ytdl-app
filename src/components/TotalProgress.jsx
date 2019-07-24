@@ -1,6 +1,6 @@
 import { Container, Grid, LinearProgress, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
-import React, { useState } from "react";
+import React from "react";
 import { connect } from "react-redux";
 import "./TotalProgress.scss";
 

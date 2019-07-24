@@ -10,18 +10,17 @@ import {
     Select,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
-import React, { useState } from "react";
 import _ from "lodash";
+import React, { useState } from "react";
 import { connect } from "react-redux";
 import {
     clearJobs,
     resetAllJobsFormat,
     setGeneralFormat,
-    startAllJobs,
     setSaveDirectory,
+    startAllJobs,
 } from "../../actions";
 import "./JobsTopControl.scss";
-const { ipcRenderer } = window.require("electron");
 
 const useStyles = makeStyles(theme => {
     return {

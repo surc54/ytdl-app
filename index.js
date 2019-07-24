@@ -1,14 +1,18 @@
 // import { app, BrowserWindow } from "electron";
-const { app, BrowserWindow, ipcMain, dialog, shell } = require("electron");
+const {
+    app,
+    BrowserWindow,
+    ipcMain,
+    dialog,
+    shell,
+    Menu,
+} = require("electron");
 const path = require("path");
 const ytdl = require("ytdl-core");
 const ytlist = require("youtube-playlist");
 const fs = require("fs");
+const _ = require("lodash");
 const filenamify = require("filenamify");
-
-// require("electron-reload")(__dirname, {
-//     electron: path.join(__dirname, "node_modules", "electron"),
-// });
 
 /**
  * @type {BrowserWindow}
@@ -26,16 +30,53 @@ app.on("ready", () => {
             nodeIntegration: true,
         },
         frame: false,
-        // show: false,
+        show: false,
         icon: path.join(__dirname, "public", "logo.ico"),
         backgroundColor: "#292929",
     });
 
-    BrowserWindow.addDevToolsExtension(
-        "C:/Users/adith/AppData/Local/Microsoft/Edge Dev/User Data/Default/Extensions/lmhkpmbekcpmknklioeibfkpmmfibljd/2.17.0_0"
-    );
-    BrowserWindow.addDevToolsExtension(
-        "C:/Users/adith/AppData/Local/Microsoft/Edge Dev/User Data/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/3.6.0_0"
+    // BrowserWindow.addDevToolsExtension(
+    //     "C:/Users/adith/AppData/Local/Microsoft/Edge Dev/User Data/Default/Extensions/lmhkpmbekcpmknklioeibfkpmmfibljd/2.17.0_0"
+    // );
+    // BrowserWindow.addDevToolsExtension(
+    //     "C:/Users/adith/AppData/Local/Microsoft/Edge Dev/User Data/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/3.6.0_0"
+    // );
+
+    Menu.setApplicationMenu(
+        Menu.buildFromTemplate([
+            {
+                label: "File",
+                submenu: [
+                    {
+                        role: "quit",
+                        accelerator: "Alt+F4",
+                    },
+                ],
+            },
+            {
+                label: "Edit",
+                submenu: [
+                    {
+                        role: "undo",
+                    },
+                    {
+                        role: "redo",
+                    },
+                    {
+                        type: "separator",
+                    },
+                    {
+                        role: "cut",
+                    },
+                    {
+                        role: "copy",
+                    },
+                    {
+                        role: "paste",
+                    },
+                ],
+            },
+        ])
     );
 
     // mainWindow.webContents.toggleDevTools();
@@ -44,7 +85,7 @@ app.on("ready", () => {
         mainWindow.show();
     });
 
-    mainWindow.loadURL("http://localhost:3000/select");
+    mainWindow.loadURL("http://localhost:3000");
 
     mainWindow.on("maximize", () => {
         mainWindow.webContents.send("window:maximized");
@@ -83,6 +124,9 @@ ipcMain.on("ytdl:open", (e, args) => {
         shell.openItem(args.path);
     }
 });
+
+let progressReplyInterval = null;
+let progressReport = {};
 
 ipcMain.on("ytdl:download", (event, arg) => {
     console.log(arg);
@@ -132,52 +176,80 @@ ipcMain.on("ytdl:download", (event, arg) => {
             }
         }
 
-        const stream = ytdl(url, {
-            quality: itag ? itag : quality,
-            filter: !itag
-                ? (() => {
-                      if (quality.indexOf("audio") !== -1) {
-                          return "audioonly";
-                      } else if (quality.indexOf("video") !== -1) {
-                          return "videoonly";
-                      } else {
-                          return "audioandvideo";
-                      }
-                  })()
-                : null,
-        });
+        if (!progressReplyInterval) {
+            progressReplyInterval = setInterval(() => {
+                if (_.size(progressReport) === 0) {
+                    return;
+                    // clearInterval(progressReplyInterval);
+                    // progressReplyInterval = null;
+                } else {
+                    event.reply(`ytdl:bulk-download-progress`, progressReport);
+                }
+            }, 1000);
+        }
 
-        const filePath = path.join(
-            arg.saveDirectory,
-            filenamify(video.title, {
-                replacement: "_",
-            }) + `.${container}`
-        );
-
-        stream.pipe(fs.createWriteStream(filePath));
-
-        stream.on("end", () => {
-            console.log(`${video.id}: Stream Ended`);
-            event.reply(`ytdl:download-complete:${video.id}`, {
-                id: video.id,
-                path: filePath,
+        try {
+            const stream = ytdl(url, {
+                quality: itag ? itag : quality,
+                filter: !itag
+                    ? (() => {
+                          if (quality.indexOf("audio") !== -1) {
+                              return "audioonly";
+                          } else if (quality.indexOf("video") !== -1) {
+                              return "videoonly";
+                          } else {
+                              return "audioandvideo";
+                          }
+                      })()
+                    : null,
             });
-        });
 
-        stream.on("close", () => console.log(`${video.id}: Stream Closed`));
+            const filePath = path.join(
+                arg.saveDirectory,
+                filenamify(video.title, {
+                    replacement: "_",
+                }) + `.${container}`
+            );
 
-        let lastProgress = new Date().getTime();
-        stream.on("progress", (chunkLength, downloaded, total) => {
-            if (new Date().getTime() - lastProgress > 1000) {
-                const percent = Math.round((downloaded * 100) / total);
-                event.reply(`ytdl:download-progress:${video.id}`, {
+            stream.pipe(fs.createWriteStream(filePath));
+
+            stream.on("end", () => {
+                console.log(`${video.id}: Stream Ended`);
+                progressReport = _.omit(progressReport, video.id);
+                event.reply(`ytdl:download-complete:${video.id}`, {
                     id: video.id,
-                    progress: percent,
+                    path: filePath,
                 });
+            });
 
-                lastProgress = new Date().getTime();
-            }
-        });
+            stream.on("error", err => {
+                event.reply("ytdl:download-error", {
+                    err,
+                    id: video.id,
+                });
+            });
+
+            stream.on("close", () => console.log(`${video.id}: Stream Closed`));
+
+            // let lastProgress = new Date().getTime();
+            stream.on("progress", (chunkLength, downloaded, total) => {
+                const percent = Math.round((downloaded * 100) / total);
+                progressReport[video.id] = percent;
+                // if (new Date().getTime() - lastProgress > 1000) {
+                //     event.reply(`ytdl:download-progress:${video.id}`, {
+                //         id: video.id,
+                //         progress: percent,
+                //     });
+
+                //     lastProgress = new Date().getTime();
+                // }
+            });
+        } catch (err) {
+            event.reply("ytdl:download-error", {
+                err,
+                id: video.id,
+            });
+        }
     });
 });
 
@@ -222,7 +294,9 @@ ipcMain.on("playlist:info", async (event, arg) => {
             const promises = [];
 
             if (videoIds.length === 0) {
-                throw new Error("No videos found in playlist");
+                throw new Error(
+                    "No videos found in playlist. Possible causes include invalid playlist id, or unsupported playlist type. YouTube Mix playlists are not supported in this app."
+                );
             }
 
             videoIds.forEach(id => {

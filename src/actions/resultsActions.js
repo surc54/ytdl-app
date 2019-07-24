@@ -29,13 +29,18 @@ export const search = query => {
     let videoId;
     if (regular) {
         let playlistId = getPlaylistId(query);
-        if (playlistId) {
-            throw new Error(
-                `Not really an error, but just letting you know we found a playlist id: ${playlistId}`
-            );
-        }
         query = query.split(/.*youtube\.com\/watch\?v=/i)[1];
         videoId = query.split("&")[0];
+
+        if (playlistId) {
+            return {
+                type: types.SET_EMBEDDED_PLAYLIST_DETAILS,
+                payload: {
+                    video: videoId,
+                    playlist: playlistId,
+                },
+            };
+        }
     } else if (short) {
         query = query.split(/.*youtu.be\//i)[1];
         videoId = query.split("&")[0];
@@ -71,7 +76,8 @@ export const search = query => {
                     });
                 });
 
-            history.push("/select");
+            if (history.location.pathname !== "/select")
+                history.push("/select");
         };
     } else {
         return async dispatch => {
@@ -95,7 +101,8 @@ export const search = query => {
                     });
                 });
 
-            history.push("/select");
+            if (history.location.pathname !== "/select")
+                history.push("/select");
         };
     }
 };
@@ -133,6 +140,12 @@ export const setResultFormat = (id, format) => {
             id,
             format,
         },
+    };
+};
+
+export const clearEmbeddedPlaylistDetails = () => {
+    return {
+        type: types.CLEAR_EMBEDDED_PLAYLIST_DETAILS,
     };
 };
 
