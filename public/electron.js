@@ -85,7 +85,8 @@ app.on("ready", () => {
         mainWindow.show();
     });
 
-    mainWindow.loadURL("http://localhost:3000");
+    // mainWindow.loadURL("http://localhost:3000");
+    mainWindow.loadFile("./build/index.html");
 
     mainWindow.on("maximize", () => {
         mainWindow.webContents.send("window:maximized");

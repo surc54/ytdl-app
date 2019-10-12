@@ -2,7 +2,7 @@ import * as types from "../actions/types";
 import _ from "lodash";
 
 const INITIAL_STATE = {
-    generalFormat: "hq-mp4",
+    generalFormat: "hq-mp3",
     saveDirectory: null,
     videos: {},
     errors: [],

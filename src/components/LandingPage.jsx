@@ -39,7 +39,7 @@ const LandingPage = ({
     return (
         <Container className="title-bar-margin landing-page">
             <div className="title-wrapper">
-                <img src="/img/logo.svg" className="landing-logo" alt="" />
+                <img src="img/logo.svg" className="landing-logo" alt="" />
                 <Typography variant="h3" component="h1" className="title">
                     YTDL
                 </Typography>
