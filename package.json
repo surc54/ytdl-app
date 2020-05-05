@@ -1,0 +1,27 @@
+{
+    "name": "ytdl",
+    "version": "3.0.0",
+    "description": "YouTube Downloader App",
+    "main": "backend/index.js",
+    "author": "Adithya Haridas <adithyah54@gmail.com>",
+    "license": "NONE",
+    "private": true,
+    "scripts": {
+        "start": "node dist/backend/index.js",
+        "dev": "concurrently \"tsc --watch\" \"nodemon --exec electron dist/index.js\""
+    },
+    "dependencies": {
+        "electron": "^8.2.4",
+        "ffmpeg-static": "^4.2.0",
+        "ffprobe-static": "^3.0.0",
+        "fluent-ffmpeg": "^2.1.2",
+        "sanitize-filename": "^1.6.3",
+        "tmp-promise": "^2.0.2",
+        "ytdl-core": "^2.1.1",
+        "ytpl": "^0.1.20"
+    },
+    "devDependencies": {
+        "concurrently": "^5.2.0",
+        "typescript": "^3.8.3"
+    }
+}
