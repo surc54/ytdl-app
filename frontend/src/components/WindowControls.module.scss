@@ -1,0 +1,31 @@
+div.wrapper {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    align-items: center;
+
+    -webkit-app-region: drag;
+
+    button.winBtn {
+        font-family: "Segoe MDL2 Assets", sans-serif;
+        font-size: 8px;
+        border-radius: 0;
+
+        padding: 0;
+        min-width: unset;
+        width: 48px;
+        min-height: 32px;
+
+        -webkit-app-region: no-drag;
+
+        &.closeBtn {
+            &:hover,
+            &:focus {
+                background-color: rgba(232, 17, 35, 1);
+                color: white;
+            }
+
+            transition: background-color 0.1s, color 0.1s;
+        }
+    }
+}
